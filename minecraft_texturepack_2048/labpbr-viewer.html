@@ -378,7 +378,10 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
     #hud b { color: var(--text); }
-  </style>
+      [hidden] { display: none !important; }
+    #modeGroup { grid-template-columns: 1fr 1fr; }
+    .note { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin: 0; }
+</style>
 </head>
 <body>
 
@@ -389,30 +392,41 @@
       <div class="panel-title">LabPBR Viewer</div>
     </div>
 
+    <!-- VIEW MODE -->
+    <div class="section" data-mode="lab block">
+      <div class="section-title">
+        <span>View Mode</span>
+        <button class="info-btn" data-title="View Mode" data-body="Material Lab inspects one PBR material on studio meshes with channel isolation and displacement. Minecraft Texture Viewer renders the texture on a Minecraft cube with nearest-neighbor filtering, the way it looks in game." data-rec="Judge normal and specular quality in Material Lab; check the in-game read in Minecraft Texture Viewer.">i</button>
+      </div>
+      <div class="btn-group" id="modeGroup">
+        <button class="btn-toggle active" data-mode="lab">Material Lab</button>
+        <button class="btn-toggle" data-mode="block">Minecraft Texture Viewer</button>
+      </div>
+    </div>
+
     <!-- PRESETS -->
-    <div class="section">
+    <div class="section" data-mode="lab block">
       <div class="section-title">
         <span>Material Preset</span>
         <button class="info-btn" data-title="Material Preset" data-body="Switches between pre-baked texture bundles." data-rec="Compare detailed cobblestone with the Before Detail preset under the same lighting.">i</button>
       </div>
-      <select id="presetSelect">
-        <optgroup label="Metallum Ad Infinitum · Companion 2K">
-          <option value="metallum_stone" selected>Metallum · Stone</option>
-          <option value="metallum_oak_planks">Metallum · Oak planks</option>
-          <option value="metallum_iron_block">Metallum · Iron block</option>
-          <option value="metallum_glowstone">Metallum · Glowstone</option>
-        </optgroup>
-        <option value="vanilla_cobble_mat">Vanilla-Guided Cobblestone · Detail</option>
-        <option value="vanilla_cobble_before">Cobblestone · Before Detail</option>
-        <option value="granite_mat">Granite</option>
-        <option value="granite_legacy_mat">Original Granite</option>
-        <option value="cobble_mat">Prompt-Only Cobblestone</option>
-        <option value="custom">Custom Uploaded</option>
-      </select>
+      <select id="presetSelect"></select>
+    </div>
+
+    <!-- MINECRAFT TEXTURE VIEWER -->
+    <div class="section" data-mode="block">
+      <div class="section-title">
+        <span>Minecraft Texture Viewer</span>
+        <button class="info-btn" data-title="Minecraft Texture Viewer" data-body="Renders the current texture on a Minecraft cube with nearest-neighbor filtering. LabPBR Shading decodes the packed normal and specular maps the way a PBR shader pack would; turn it off for the flat vanilla albedo read." data-rec="Compare against Material Lab under the same sun position.">i</button>
+      </div>
+      <label class="check-label">
+        <input type="checkbox" id="chkBlockPBR" checked> LabPBR Shading
+      </label>
+      <p class="note">Nearest-neighbor cube &middot; no displacement &middot; fixed 1&times;1 tiling.</p>
     </div>
 
     <!-- GEOMETRY -->
-    <div class="section">
+    <div class="section" data-mode="lab">
       <div class="section-title">
         <span>3D Mesh</span>
         <button class="info-btn" data-title="3D Mesh" data-body="Swaps the 3D model geometry rendering the texture." data-rec="Use Block (Sharp) to check corner seams, Plane 2×2 to inspect repeat seams, and Sphere for smooth specular rolloff.">i</button>
@@ -435,7 +449,7 @@
     </div>
 
     <!-- PBR CHANNELS (Mute + ISO) -->
-    <div class="section">
+    <div class="section" data-mode="lab">
       <div class="section-title">
         <span>PBR Channels</span>
         <button class="info-btn" data-title="PBR Channels" data-body="Checkboxes mute or unmute maps from the render mix. Click ISO to view any single channel isolated on the mesh.">i</button>
@@ -505,7 +519,7 @@
     </div>
 
     <!-- TILING -->
-    <div class="section">
+    <div class="section" data-mode="lab">
       <div class="section-title">
         <span>Tiling (UV Repeat)</span>
         <button class="info-btn" data-title="Tiling (UV Repeat)" data-body="Controls how many times the texture repeats across each surface." data-rec="Use 1×1 for single-face inspection, or 2×2 and 3×3 to verify that borders match seamlessly without crosshair seams.">i</button>
@@ -518,7 +532,7 @@
     </div>
 
     <!-- PBR DISPLACEMENT & BUMP -->
-    <div class="section">
+    <div class="section" data-mode="lab">
       <div class="section-title">
         <span>Displacement & Bump</span>
         <button class="info-btn" data-title="Displacement & Bump" data-body="Scales the physical geometric depth and normal map intensity." data-rec="Higher displacement scale emphasizes stone relief; values above 0.16 will expose corner tearing on sharp cubes.">i</button>
@@ -542,7 +556,7 @@
     </div>
 
     <!-- LIGHTING -->
-    <div class="section">
+    <div class="section" data-mode="lab block">
       <div class="section-title">
         <span>Lighting Rig</span>
         <button class="info-btn" data-title="Lighting Rig" data-body="Controls the position, motion, and intensity of the directional sun light." data-rec="Rotate azimuth or turn on Orbit Sun to watch highlights and shadow crevices travel across the block.">i</button>
@@ -576,7 +590,7 @@
     </div>
 
     <!-- CUSTOM INPUTS -->
-    <div class="section">
+    <div class="section" data-mode="lab block">
       <div class="section-title">
         <span>Custom Textures</span>
         <button class="info-btn" data-title="Custom Textures" data-body="Loads local texture files from your machine into the 3D preview." data-rec="Drag and drop any files into the window. Files containing _n or _s are automatically routed to their channels.">i</button>
@@ -601,7 +615,7 @@
 
   <div id="hud">
     <div>Mesh: <b id="hudMesh">Block (Sharp)</b> | View: <b id="hudMode">Full PBR</b></div>
-    <div>Preset: <b id="hudPreset">Old Granite (Depth-Anything)</b></div>
+    <div>Preset: <b id="hudPreset">Loading&hellip;</b></div>
     <div style="font-size: 11px; opacity: 0.7;">Left drag: Rotate • Right drag: Pan • Scroll: Zoom</div>
   </div>
 
@@ -620,12 +634,15 @@
     import * as THREE from "three";
     import { OrbitControls } from "three/addons/controls/OrbitControls.js";
     import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
-    import { patchLabPBR } from "./labpbr-viewer-shaders.mjs";
+    import { patchLabPBR, HEIGHT_RANGE } from "./labpbr-viewer-shaders.mjs";
+    import { PRESETS, PRESET_ORDER, DEFAULT_PRESET } from "./viewer-presets.mjs";
+    import { configureTexLoader, loadTexture } from "./viewer-texload.mjs";
 
     const canvas = document.getElementById("viewport");
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
+    configureTexLoader(renderer.capabilities);
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x1a1a1a);
@@ -645,6 +662,7 @@
     dirLight.position.set(2, 3, 1);
     scene.add(dirLight);
 
+    // --- Material Lab material: the full PBR inspector ---
     const material = new THREE.MeshStandardMaterial({
       color: 0x888888,
       roughness: 0.7,
@@ -657,14 +675,27 @@
     material.onBeforeCompile = shader => patchLabPBR(shader, THREE.ShaderChunk, labUniforms);
     material.customProgramCacheKey = () => "labpbr-calibrated-v1";
 
+    // --- Block mode materials: the in-game read on a Minecraft cube ---
+    // Same LabPBR patch at neutral depth (labDepth = HEIGHT_RANGE scales the
+    // packed normals by exactly 1.0), no displacement, nearest-neighbor sampling.
+    const blockUniforms = { labDepth: { value: HEIGHT_RANGE }, labInspect: { value: 0 } };
+    const blockMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 1.0,
+      metalness: 0.0
+    });
+    blockMaterial.normalScale.set(1, -1);
+    blockMaterial.onBeforeCompile = shader => patchLabPBR(shader, THREE.ShaderChunk, blockUniforms);
+    blockMaterial.customProgramCacheKey = () => "labpbr-block-v1";
+    // Flat vanilla fallback: albedo only under simple lambert lighting.
+    const blockVanillaMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
     let currentMesh = null;
     let uvRepeat = 1;
     let currentGeoType = "box";
     let currentSubdivisions = 160;
     let inspectMode = "pbr";
-
-    const loader = new THREE.ImageBitmapLoader();
-    loader.setOptions({ premultiplyAlpha: "none", colorSpaceConversion: "none", imageOrientation: "flipY" });
+    let viewMode = "lab";
 
     let mapAlbedo = null;
     let mapNormal = null;
@@ -673,56 +704,30 @@
     let mapAO = null;
     let emissiveSprite = false;
 
-    const OLD_PREFIX = "macro_photography__top_down_flat_orthographic_view_of__coarse_granite_stone_wall_with_deep_fissures___seamless_texture__studio_lighting__neutral__seamless_texture__repeating_pattern__fl_4017007139";
-    const PRESETS = {
-      metallum_stone: { name: "Metallum · Stone (Companion 2K)", albedo: "textures/stone.png", normal: "textures/stone_n.png", specular: "textures/stone_s.png", depth: 0.06 },
-      metallum_oak_planks: { name: "Metallum · Oak planks (Companion 2K)", albedo: "textures/oak_planks.png", normal: "textures/oak_planks_n.png", specular: "textures/oak_planks_s.png", depth: 0.025 },
-      metallum_iron_block: { name: "Metallum · Iron block (Companion 2K)", albedo: "textures/iron_block.png", normal: "textures/iron_block_n.png", specular: "textures/iron_block_s.png", depth: 0.03 },
-      metallum_glowstone: { name: "Metallum · Glowstone (Companion 2K)", albedo: "textures/glowstone.png", normal: "textures/glowstone_n.png", specular: "textures/glowstone_s.png", depth: 0.05 },
-      candidate_oak_planks: { name: "Candidate · Oak planks (PBR)", albedo: "candidate-oak_planks.png", normal: "candidate-oak_planks_n.png", specular: "candidate-oak_planks_s.png", depth: 0.025 },
-      candidate_bricks: { name: "Candidate · Bricks (PBR)", albedo: "candidate-bricks.png", normal: "candidate-bricks_n.png", specular: "candidate-bricks_s.png", depth: 0.025 },
-      candidate_iron_ore: { name: "Candidate · Iron ore (PBR)", albedo: "candidate-iron_ore.png", normal: "candidate-iron_ore_n.png", specular: "candidate-iron_ore_s.png", depth: 0.05 },
-      candidate_oak_leaves: { name: "Candidate · Oak leaves (provisional PBR)", albedo: "candidate-oak_leaves.png", normal: "candidate-oak_leaves_n.png", specular: "candidate-oak_leaves_s.png", depth: 0.03 },
-      candidate_fire_0: { name: "Candidate · Fire (static emissive sprite)", albedo: "candidate-fire_0.png", normal: "candidate-fire_0_n.png", specular: "candidate-fire_0_s.png", emissiveSprite: true, depth: 0 },
-      vanilla_cobble_mat: {
-        name: "Vanilla-Guided Cobblestone · Detail",
-        albedo: "vanilla_cobble_v2.png",
-        normal: "vanilla_cobble_v2_detail_n.png",
-        specular: "vanilla_cobble_v2_detail_s.png",
-        depth: 0.06
-      },
-      vanilla_cobble_before: {
-        name: "Vanilla-Guided Cobblestone",
-        albedo: "vanilla_cobble_v2.png",
-        normal: "vanilla_cobble_v2_calibrated_n.png",
-        specular: "vanilla_cobble_v2_calibrated_s.png",
-        depth: 0.06
-      },
-      granite_mat: {
-        name: "Granite",
-        albedo: "granite.png",
-        normal: "granite_detail_n.png",
-        specular: "granite_detail_s.png",
-        depth: 0.06
-      },
-      granite_legacy_mat: {
-        name: "Original Granite",
-        albedo: `${OLD_PREFIX}.png`,
-        normal: "legacy_granite_detail_n.png",
-        specular: "legacy_granite_detail_s.png",
-        depth: 0.06
-      },
-      cobble_mat: {
-        name: "Prompt-Only Cobblestone",
-        albedo: "cobble.png",
-        normal: "cobble_detail_n.png",
-        specular: "cobble_detail_s.png",
-        depth: 0.06
-      }
-    };
-    for (const [key, preset] of Object.entries(PRESETS)) {
-      if (key.startsWith("candidate_")) {
-        document.getElementById("presetSelect").add(new Option(preset.name, key));
+    // Preset dropdown is built from the shipped-texture catalog so a preset can
+    // never point at a texture that isn't in the repo (viewer-presets.mjs).
+    const presetSelect = document.getElementById("presetSelect");
+    for (const key of PRESET_ORDER) {
+      presetSelect.add(new Option(PRESETS[key].name, key));
+    }
+    presetSelect.add(new Option("Custom Uploaded", "custom"));
+
+    function currentMaps() {
+      return [mapAlbedo, mapNormal, mapHeight, mapRoughness, mapAO];
+    }
+
+    function applyMagFilter() {
+      // Minecraft samples block textures nearest-neighbor; the lab inspects
+      // them filtered. Filter choice is per texture, so flip it on mode change.
+      const block = viewMode === "block";
+      const mag = block ? THREE.NearestFilter : THREE.LinearFilter;
+      const min = block ? THREE.NearestMipmapLinearFilter : THREE.LinearMipmapLinearFilter;
+      for (const t of currentMaps()) {
+        if (t && t.magFilter !== mag) {
+          t.magFilter = mag;
+          t.minFilter = min;
+          t.needsUpdate = true;
+        }
       }
     }
 
@@ -762,20 +767,6 @@
       document.getElementById("hudMesh").textContent = document.querySelector(`#meshGroup [data-geo="${type}"]`)?.textContent || type;
     }
 
-    function loadTexture(url, isColor) {
-      return new Promise((resolve, reject) => {
-        loader.load(url, (image) => {
-          const tex = new THREE.Texture(image);
-          tex.flipY = false; // ImageBitmapLoader already flipped the pixels.
-          tex.colorSpace = isColor ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-          tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-          tex.needsUpdate = true;
-          resolve(tex);
-        }, undefined, reject);
-      });
-    }
-
     function updateMaterial() {
       const chkAlbedo = document.getElementById("chkAlbedo").checked;
       const chkNormal = document.getElementById("chkNormal").checked;
@@ -788,14 +779,15 @@
       const nrmVal = parseFloat(document.getElementById("normalScale").value);
       labUniforms.labDepth.value = emissiveSprite ? 0 : dispVal;
       labUniforms.labInspect.value = { pbr: 0, albedo: 1, normal: 2, height: 3, roughness: 4, ao: 5 }[inspectMode];
+      applyMagFilter();
 
       material.wireframe = chkWire;
       material.emissive.set(0x000000);
       material.emissiveMap = null;
 
-      [mapAlbedo, mapNormal, mapHeight, mapRoughness, mapAO].forEach(t => {
+      for (const t of currentMaps()) {
         if (t) t.repeat.set(uvRepeat, uvRepeat);
-      });
+      }
 
       // Isolated Channel Mode (Ableton-style ISO)
       if (inspectMode === "albedo") {
@@ -869,7 +861,62 @@
       material.alphaTest = material.map && material.map === mapAlbedo ? 0.1 : 0;
       material.side = THREE.DoubleSide;
       material.needsUpdate = true;
-      document.getElementById("hudMode").textContent = inspectMode === "pbr" ? "FULL PBR" : `ISO: ${inspectMode.toUpperCase()}`;
+      document.getElementById("hudMode").textContent = inspectMode === "pbr" ? "MATERIAL LAB · FULL PBR" : `MATERIAL LAB · ISO: ${inspectMode.toUpperCase()}`;
+    }
+
+    function updateBlockMaterial() {
+      const usePBR = document.getElementById("chkBlockPBR").checked;
+      applyMagFilter();
+
+      blockMaterial.map = usePBR && mapAlbedo ? mapAlbedo : null;
+      blockMaterial.color.set(blockMaterial.map ? 0xffffff : 0x888888);
+      blockMaterial.normalMap = usePBR ? mapNormal : null;
+      blockMaterial.roughnessMap = usePBR ? mapRoughness : null;
+      blockMaterial.roughness = blockMaterial.roughnessMap ? 1.0 : 0.9;
+      blockMaterial.aoMap = usePBR ? mapAO : null;
+      blockMaterial.aoMapIntensity = 1.0;
+      blockMaterial.needsUpdate = true;
+
+      blockVanillaMaterial.map = !usePBR && mapAlbedo ? mapAlbedo : null;
+      blockVanillaMaterial.color.set(blockVanillaMaterial.map ? 0xffffff : 0x888888);
+      blockVanillaMaterial.needsUpdate = true;
+
+      if (currentMesh && viewMode === "block") {
+        currentMesh.material = usePBR ? blockMaterial : blockVanillaMaterial;
+      }
+      document.getElementById("hudMode").textContent = usePBR ? "TEXTURE VIEWER · PBR" : "TEXTURE VIEWER · VANILLA";
+    }
+
+    function refreshMaterials() {
+      if (viewMode === "block") updateBlockMaterial();
+      else updateMaterial();
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      document.querySelectorAll("#modeGroup .btn-toggle").forEach(b =>
+        b.classList.toggle("active", b.dataset.mode === mode));
+      document.querySelectorAll("[data-mode]").forEach(el => {
+        el.hidden = !el.dataset.mode.split(" ").includes(mode);
+      });
+
+      if (currentMesh) {
+        scene.remove(currentMesh);
+        currentMesh.geometry.dispose();
+        currentMesh = null;
+      }
+
+      if (mode === "block") {
+        const geo = new THREE.BoxGeometry(1, 1, 1);
+        const usePBR = document.getElementById("chkBlockPBR").checked;
+        currentMesh = new THREE.Mesh(geo, usePBR ? blockMaterial : blockVanillaMaterial);
+        scene.add(currentMesh);
+        document.getElementById("hudMesh").textContent = "Minecraft Cube";
+        updateBlockMaterial();
+      } else {
+        setGeometry(currentGeoType);
+        updateMaterial();
+      }
     }
 
     async function loadPreset(key) {
@@ -901,7 +948,11 @@
       document.getElementById("lblNrm").classList.toggle("loaded", !!nrm);
       document.getElementById("lblSpec").classList.toggle("loaded", !!spec);
 
-      updateMaterial();
+      refreshMaterials();
+    }
+
+    function loadPresetFailed(error) {
+      document.getElementById("hudPreset").textContent = `Load failed: ${error.message || error}`;
     }
 
     async function handleFile(file, hint) {
@@ -924,7 +975,7 @@
         mapAlbedo = await loadTexture(URL.createObjectURL(file), true);
         document.getElementById("lblAlb").classList.add("loaded");
       }
-      updateMaterial();
+      refreshMaterials();
     }
 
     // --- Tooltip Logic ---
@@ -971,7 +1022,15 @@
     });
 
     // --- UI Listeners ---
-    document.getElementById("presetSelect").addEventListener("change", (e) => loadPreset(e.target.value));
+    document.getElementById("presetSelect").addEventListener("change", (e) => {
+      loadPreset(e.target.value).catch(loadPresetFailed);
+    });
+
+    document.querySelectorAll("#modeGroup .btn-toggle").forEach(btn => {
+      btn.addEventListener("click", () => setViewMode(btn.dataset.mode));
+    });
+
+    document.getElementById("chkBlockPBR").addEventListener("change", updateBlockMaterial);
 
     document.querySelectorAll("#meshGroup .btn-toggle").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -1048,6 +1107,7 @@
       updateSun();
     });
     document.getElementById("sunAzimuth").addEventListener("input", (e) => {
+      document.getElementById("sunAzimuth").value = e.target.value;
       document.getElementById("sunAzVal").textContent = e.target.value + "°";
       updateSun();
     });
@@ -1113,14 +1173,13 @@
     }
 
     // Initialize
-    setGeometry("box");
+    setViewMode("lab");
     const requestedPreset = new URLSearchParams(location.search).get("preset");
-    const initialPreset = Object.hasOwn(PRESETS, requestedPreset) ? requestedPreset : "metallum_stone";
-    document.getElementById("presetSelect").value = initialPreset;
-    loadPreset(initialPreset).catch(error => {
-      document.getElementById("hudPreset").textContent = `Load failed: ${error.message || error}`;
-    });
+    const initialPreset = Object.hasOwn(PRESETS, requestedPreset) ? requestedPreset : DEFAULT_PRESET;
+    presetSelect.value = initialPreset;
+    loadPreset(initialPreset).catch(loadPresetFailed);
     animate();
+
   </script>
 </body>
 </html>
