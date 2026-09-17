@@ -1,0 +1,6 @@
+/build/
+**/.DS_Store
+**/__pycache__/
+# Generated texture PNGs are built locally, never committed.
+minecraft_texturepack_2048/*.png
+*.log

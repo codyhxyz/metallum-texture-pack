@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LabPBR Viewer</title>
+  <style>
+    :root {
+      --bg: #14161a;
+      --surface: rgba(22, 26, 34, 0.92);
+      --surface-border: rgba(255, 255, 255, 0.12);
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --accent-dim: rgba(56, 189, 248, 0.18);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #viewport {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    /* Floating Controls */
+    .panel {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      width: 320px;
+      max-height: calc(100vh - 32px);
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.5);
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .panel.collapsed {
+      transform: translateX(-340px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #togglePanel {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 11;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    #togglePanel:hover { background: rgba(35, 42, 54, 0.95); }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--surface-border);
+      margin-top: 32px;
+    }
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Info Badge (i) */
+    .info-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 700;
+      cursor: help;
+      transition: all 0.15s ease;
+      line-height: 1;
+      border: none;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .info-btn:hover {
+      background: var(--accent);
+      color: #0b0f14;
+      transform: scale(1.15);
+    }
+
+    /* Global Tooltip Card */
+    #globalTooltip {
+      position: fixed;
+      z-index: 1000;
+      width: 260px;
+      background: #0f131a;
+      border: 1px solid var(--accent);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 11px;
+      line-height: 1.45;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.7);
+      pointer-events: none;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    #globalTooltip.visible {
+      display: block;
+      opacity: 1;
+    }
+    #globalTooltip .tip-title {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 10px;
+    }
+    #globalTooltip .tip-body {
+      color: #c9d1d9;
+      margin-bottom: 4px;
+    }
+    #globalTooltip .tip-rec {
+      color: #7ee787;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 4px;
+      font-style: normal;
+    }
+
+    select, button {
+      background: #1e232d;
+      color: var(--text);
+      border: 1px solid var(--surface-border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 13px;
+      outline: none;
+      width: 100%;
+    }
+    select:focus { border-color: var(--accent); }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
+      gap: 4px;
+    }
+    .btn-toggle {
+      background: #1e232d;
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      padding: 5px 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 6px;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .btn-toggle.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .btn-toggle:hover:not(.active) {
+      background: #28303d;
+      color: var(--text);
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .slider-title {
+      flex: 0 0 95px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      height: 4px;
+      background: #2a313d;
+      border-radius: 2px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .slider-val {
+      flex: 0 0 38px;
+      text-align: right;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: var(--text);
+    }
+
+    /* Channel List (Ableton/Audacity style Mute + ISO) */
+    .channel-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--surface-border);
+    }
+    .channel-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .channel-row:last-child {
+      border-bottom: none;
+    }
+    .channel-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-iso {
+      background: #1e232d;
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      width: auto;
+    }
+    .btn-iso:hover {
+      background: #2a3342;
+      color: var(--text);
+    }
+    .btn-iso.active {
+      background: #0284c7;
+      border-color: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+    .check-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .check-label input[type="checkbox"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .drop-box {
+      border: 1px dashed var(--surface-border);
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .drop-box.dragover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .file-btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 4px;
+    }
+    .file-btn {
+      position: relative;
+      overflow: hidden;
+      padding: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      background: #1e232d;
+      border: 1px solid var(--surface-border);
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .file-btn input[type="file"] {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .file-btn.loaded {
+      border-color: #22c55e;
+      color: #4ade80;
+    }
+
+    #hud {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      backdrop-filter: blur(12px);
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      pointer-events: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    #hud b { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <button id="togglePanel">☰ Controls</button>
+
+  <div class="panel" id="uiPanel">
+    <div class="panel-header">
+      <div class="panel-title">LabPBR Viewer</div>
+    </div>
+
+    <!-- PRESETS -->
+    <div class="section">
+      <div class="section-title">
+        <span>Material Preset</span>
+        <button class="info-btn" data-title="Material Preset" data-body="Switches between pre-baked texture bundles." data-rec="Compare detailed cobblestone with the Before Detail preset under the same lighting.">i</button>
+      </div>
+      <select id="presetSelect">
+        <option value="vanilla_cobble_mat" selected>Vanilla-Guided Cobblestone · Detail</option>
+        <option value="vanilla_cobble_before">Cobblestone · Before Detail</option>
+        <option value="granite_mat">Granite</option>
+        <option value="granite_legacy_mat">Original Granite</option>
+        <option value="cobble_mat">Prompt-Only Cobblestone</option>
+        <option value="custom">Custom Uploaded</option>
+      </select>
+    </div>
+
+    <!-- GEOMETRY -->
+    <div class="section">
+      <div class="section-title">
+        <span>3D Mesh</span>
+        <button class="info-btn" data-title="3D Mesh" data-body="Swaps the 3D model geometry rendering the texture." data-rec="Use Block (Sharp) to check corner seams, Plane 2×2 to inspect repeat seams, and Sphere for smooth specular rolloff.">i</button>
+      </div>
+      <div class="btn-group" id="meshGroup">
+        <button class="btn-toggle active" data-geo="box">Block (Sharp)</button>
+        <button class="btn-toggle" data-geo="plane">Plane 2×2</button>
+        <button class="btn-toggle" data-geo="sphere">Sphere</button>
+        <button class="btn-toggle" data-geo="bevel">Block (Bevel)</button>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
+        <span style="font-size: 11px; color: var(--text-muted);">Mesh Density</span>
+        <button class="info-btn" data-title="Mesh Subdivision Density" data-body="Controls vertex grid density for displacement. Low density (64) creates sawtooth zigzag edges along diagonal cracks; high density (160+) renders smooth continuous stone contours.">i</button>
+      </div>
+      <div class="btn-group" id="subdivGroup">
+        <button class="btn-toggle" data-subdiv="64">64 (Coarse)</button>
+        <button class="btn-toggle active" data-subdiv="160">160 (Smooth)</button>
+        <button class="btn-toggle" data-subdiv="256">256 (Ultra)</button>
+      </div>
+    </div>
+
+    <!-- PBR CHANNELS (Mute + ISO) -->
+    <div class="section">
+      <div class="section-title">
+        <span>PBR Channels</span>
+        <button class="info-btn" data-title="PBR Channels" data-body="Checkboxes mute or unmute maps from the render mix. Click ISO to view any single channel isolated on the mesh.">i</button>
+      </div>
+      <div class="channel-list">
+        <div class="channel-row">
+          <label class="check-label">
+            <input type="checkbox" id="chkAlbedo" checked> Albedo
+          </label>
+          <div class="channel-actions">
+            <button class="btn-iso" data-iso="albedo">ISO</button>
+            <button class="info-btn" data-title="Albedo" data-body="Base diffuse color. Check to include in PBR mix, or click ISO to inspect unlit color.">i</button>
+          </div>
+        </div>
+
+        <div class="channel-row">
+          <label class="check-label">
+            <input type="checkbox" id="chkNormal" checked> Normal Map
+          </label>
+          <div class="channel-actions">
+            <button class="btn-iso" data-iso="normal">ISO</button>
+            <button class="info-btn" data-title="Normal Map" data-body="Tangent-space surface vectors. Check to include in PBR mix, or click ISO to inspect the normal vector map.">i</button>
+          </div>
+        </div>
+
+        <div class="channel-row">
+          <label class="check-label">
+            <input type="checkbox" id="chkDisp" checked> Displacement
+          </label>
+          <div class="channel-actions">
+            <button class="btn-iso" data-iso="height">ISO</button>
+            <button class="info-btn" data-title="Displacement" data-body="Physical 3D vertex height along normals. Check to include in PBR mix, or click ISO to view the height map.">i</button>
+          </div>
+        </div>
+
+        <div class="channel-row">
+          <label class="check-label">
+            <input type="checkbox" id="chkRough" checked> Roughness
+          </label>
+          <div class="channel-actions">
+            <button class="btn-iso" data-iso="roughness">ISO</button>
+            <button class="info-btn" data-title="Roughness" data-body="Surface glossiness from LabPBR _s. Check to include in PBR mix, or click ISO to inspect the roughness map.">i</button>
+          </div>
+        </div>
+
+        <div class="channel-row">
+          <label class="check-label">
+            <input type="checkbox" id="chkAO"> Ambient Occlusion
+          </label>
+          <div class="channel-actions">
+            <button class="btn-iso" data-iso="ao">ISO</button>
+            <button class="info-btn" data-title="Ambient Occlusion" data-body="Contact shadow crevices from LabPBR _n blue channel. Check to include in PBR mix, or click ISO to inspect the AO map.">i</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; gap: 8px; margin-top: 4px;">
+        <label class="check-label">
+          <input type="checkbox" id="chkDirectX" checked> DirectX Flip
+          <button class="info-btn" data-title="DirectX Green-Flip" data-body="Inverts the normal map Green channel (+Y downward)." data-rec="Keep checked for LabPBR maps so crevices sink into the surface rather than puffing outwards.">i</button>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" id="chkWire"> Wireframe
+          <button class="info-btn" data-title="Wireframe" data-body="Displays the underlying polygon mesh grid." data-rec="Use this to verify vertex subdivision density and observe physical displacement deformation.">i</button>
+        </label>
+      </div>
+    </div>
+
+    <!-- TILING -->
+    <div class="section">
+      <div class="section-title">
+        <span>Tiling (UV Repeat)</span>
+        <button class="info-btn" data-title="Tiling (UV Repeat)" data-body="Controls how many times the texture repeats across each surface." data-rec="Use 1×1 for single-face inspection, or 2×2 and 3×3 to verify that borders match seamlessly without crosshair seams.">i</button>
+      </div>
+      <div class="btn-group" id="tilingGroup">
+        <button class="btn-toggle active" data-repeat="1">1×1</button>
+        <button class="btn-toggle" data-repeat="2">2×2</button>
+        <button class="btn-toggle" data-repeat="3">3×3</button>
+      </div>
+    </div>
+
+    <!-- PBR DISPLACEMENT & BUMP -->
+    <div class="section">
+      <div class="section-title">
+        <span>Displacement & Bump</span>
+        <button class="info-btn" data-title="Displacement & Bump" data-body="Scales the physical geometric depth and normal map intensity." data-rec="Higher displacement scale emphasizes stone relief; values above 0.16 will expose corner tearing on sharp cubes.">i</button>
+      </div>
+      <div class="slider-row">
+        <span class="slider-title">
+          Depth Scale
+          <button class="info-btn" data-title="Depth Scale" data-body="Sets relief depth in scene units and scales matching normals with it." data-rec="0.06 is a preview choice, not a measured material depth. Cube faces are one unit wide.">i</button>
+        </span>
+        <input type="range" id="dispScale" min="0.0" max="0.30" step="0.005" value="0.06">
+        <span class="slider-val" id="dispScaleVal">0.06</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-title">
+          Normal Override
+          <button class="info-btn" data-title="Normal Override" data-body="Multiplies the calibrated normal strength without changing displacement." data-rec="Keep 1.0 for matching height and normals. Other values are artistic overrides. Imported maps must use quarter-tile depth to match.">i</button>
+        </span>
+        <input type="range" id="normalScale" min="0" max="3" step="0.1" value="1.0">
+        <span class="slider-val" id="normalScaleVal">1.0</span>
+      </div>
+    </div>
+
+    <!-- LIGHTING -->
+    <div class="section">
+      <div class="section-title">
+        <span>Lighting Rig</span>
+        <button class="info-btn" data-title="Lighting Rig" data-body="Controls the position, motion, and intensity of the directional sun light." data-rec="Rotate azimuth or turn on Orbit Sun to watch highlights and shadow crevices travel across the block.">i</button>
+      </div>
+      <div class="slider-row">
+        <span class="slider-title">
+          Sun Altitude
+          <button class="info-btn" data-title="Sun Altitude" data-body="Sets the vertical elevation angle of the sun." data-rec="Low angles (20°–35°) cast long raking shadows across fissures; high angles (65°–85°) provide flat overhead fill.">i</button>
+        </span>
+        <input type="range" id="sunElevation" min="5" max="85" step="1" value="50">
+        <span class="slider-val" id="sunElevVal">50°</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-title">
+          Sun Azimuth
+          <button class="info-btn" data-title="Sun Azimuth" data-body="Rotates the sun 360° horizontally around the model." data-rec="Drag this to inspect highlights and shadow relief across each individual block face.">i</button>
+        </span>
+        <input type="range" id="sunAzimuth" min="0" max="360" step="1" value="45">
+        <span class="slider-val" id="sunAzVal">45°</span>
+      </div>
+      <div class="check-grid" style="margin-top: 4px;">
+        <label class="check-label">
+          <input type="checkbox" id="chkOrbitSun"> Orbit Sun
+          <button class="info-btn" data-title="Orbit Sun" data-body="Automatically rotates the sun continuously around the scene." data-rec="Turn on for hands-free inspection of dynamic specular glints and deep crack shadows.">i</button>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" id="chkAutoRotate"> Auto Spin
+          <button class="info-btn" data-title="Auto Spin" data-body="Continuously rotates the 3D model around its vertical axis." data-rec="Useful for continuous showroom inspection of overall block aesthetics from every angle.">i</button>
+        </label>
+      </div>
+    </div>
+
+    <!-- CUSTOM INPUTS -->
+    <div class="section">
+      <div class="section-title">
+        <span>Custom Textures</span>
+        <button class="info-btn" data-title="Custom Textures" data-body="Loads local texture files from your machine into the 3D preview." data-rec="Drag and drop any files into the window. Files containing _n or _s are automatically routed to their channels.">i</button>
+      </div>
+      <div class="drop-box" id="dropZone">Drop any albedo / _n / _s files here</div>
+      <div class="file-btn-row">
+        <label class="file-btn" id="lblAlb">Albedo<input type="file" id="fileAlb" accept="image/*"></label>
+        <label class="file-btn" id="lblNrm">_n<input type="file" id="fileNrm" accept="image/*"></label>
+        <label class="file-btn" id="lblSpec">_s<input type="file" id="fileSpec" accept="image/*"></label>
+      </div>
+    </div>
+
+    <button id="btnResetCamera" style="margin-top: 4px; cursor: pointer;">Reset Camera</button>
+  </div>
+
+  <!-- FLOATING TOOLTIP CARD -->
+  <div id="globalTooltip">
+    <div class="tip-title" id="tipTitle">Setting</div>
+    <div class="tip-body" id="tipBody">Description</div>
+    <div class="tip-rec" id="tipRec">Recommended: ...</div>
+  </div>
+
+  <div id="hud">
+    <div>Mesh: <b id="hudMesh">Block (Sharp)</b> | View: <b id="hudMode">Full PBR</b></div>
+    <div>Preset: <b id="hudPreset">Old Granite (Depth-Anything)</b></div>
+    <div style="font-size: 11px; opacity: 0.7;">Left drag: Rotate • Right drag: Pan • Scroll: Zoom</div>
+  </div>
+
+  <canvas id="viewport"></canvas>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+    import { patchLabPBR } from "./labpbr-viewer-shaders.mjs";
+
+    const canvas = document.getElementById("viewport");
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a1a);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 50);
+    camera.position.set(1.6, 1.2, 1.6);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 0, 0);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    dirLight.position.set(2, 3, 1);
+    scene.add(dirLight);
+
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x888888,
+      roughness: 0.7,
+      metalness: 0.0
+    });
+    material.normalScale.set(1, -1);
+    material.displacementScale = 0.06;
+    material.displacementBias = -0.03;
+    const labUniforms = { labDepth: { value: 0.06 }, labInspect: { value: 0 } };
+    material.onBeforeCompile = shader => patchLabPBR(shader, THREE.ShaderChunk, labUniforms);
+    material.customProgramCacheKey = () => "labpbr-calibrated-v1";
+
+    let currentMesh = null;
+    let uvRepeat = 1;
+    let currentGeoType = "box";
+    let currentSubdivisions = 160;
+    let inspectMode = "pbr";
+
+    const loader = new THREE.ImageBitmapLoader();
+    loader.setOptions({ premultiplyAlpha: "none", colorSpaceConversion: "none", imageOrientation: "flipY" });
+
+    let mapAlbedo = null;
+    let mapNormal = null;
+    let mapHeight = null;
+    let mapRoughness = null;
+    let mapAO = null;
+    let emissiveSprite = false;
+
+    const OLD_PREFIX = "macro_photography__top_down_flat_orthographic_view_of__coarse_granite_stone_wall_with_deep_fissures___seamless_texture__studio_lighting__neutral__seamless_texture__repeating_pattern__fl_4017007139";
+    const PRESETS = {
+      candidate_oak_planks: { name: "Candidate · Oak planks (PBR)", albedo: "candidate-oak_planks.png", normal: "candidate-oak_planks_n.png", specular: "candidate-oak_planks_s.png", depth: 0.025 },
+      candidate_bricks: { name: "Candidate · Bricks (PBR)", albedo: "candidate-bricks.png", normal: "candidate-bricks_n.png", specular: "candidate-bricks_s.png", depth: 0.025 },
+      candidate_iron_ore: { name: "Candidate · Iron ore (PBR)", albedo: "candidate-iron_ore.png", normal: "candidate-iron_ore_n.png", specular: "candidate-iron_ore_s.png", depth: 0.05 },
+      candidate_oak_leaves: { name: "Candidate · Oak leaves (provisional PBR)", albedo: "candidate-oak_leaves.png", normal: "candidate-oak_leaves_n.png", specular: "candidate-oak_leaves_s.png", depth: 0.03 },
+      candidate_fire_0: { name: "Candidate · Fire (static emissive sprite)", albedo: "candidate-fire_0.png", normal: "candidate-fire_0_n.png", specular: "candidate-fire_0_s.png", emissiveSprite: true, depth: 0 },
+      vanilla_cobble_mat: {
+        name: "Vanilla-Guided Cobblestone · Detail",
+        albedo: "vanilla_cobble_v2.png",
+        normal: "vanilla_cobble_v2_detail_n.png",
+        specular: "vanilla_cobble_v2_detail_s.png",
+        depth: 0.06
+      },
+      vanilla_cobble_before: {
+        name: "Vanilla-Guided Cobblestone",
+        albedo: "vanilla_cobble_v2.png",
+        normal: "vanilla_cobble_v2_calibrated_n.png",
+        specular: "vanilla_cobble_v2_calibrated_s.png",
+        depth: 0.06
+      },
+      granite_mat: {
+        name: "Granite",
+        albedo: "granite.png",
+        normal: "granite_detail_n.png",
+        specular: "granite_detail_s.png",
+        depth: 0.06
+      },
+      granite_legacy_mat: {
+        name: "Original Granite",
+        albedo: `${OLD_PREFIX}.png`,
+        normal: "legacy_granite_detail_n.png",
+        specular: "legacy_granite_detail_s.png",
+        depth: 0.06
+      },
+      cobble_mat: {
+        name: "Prompt-Only Cobblestone",
+        albedo: "cobble.png",
+        normal: "cobble_detail_n.png",
+        specular: "cobble_detail_s.png",
+        depth: 0.06
+      }
+    };
+    for (const [key, preset] of Object.entries(PRESETS)) {
+      if (key.startsWith("candidate_")) {
+        document.getElementById("presetSelect").add(new Option(preset.name, key));
+      }
+    }
+
+    function setGeometry(type) {
+      currentGeoType = type;
+      if (currentMesh) {
+        scene.remove(currentMesh);
+        currentMesh.geometry.dispose();
+      }
+
+      const sub = currentSubdivisions;
+      let geo;
+      switch (type) {
+        case "box":
+          geo = new THREE.BoxGeometry(1.0, 1.0, 1.0, sub, sub, sub);
+          break;
+        case "plane":
+          geo = new THREE.PlaneGeometry(2.0, 2.0, sub, sub);
+          geo.rotateX(-Math.PI / 4);
+          break;
+        case "sphere":
+          geo = new THREE.SphereGeometry(0.75, sub, Math.round(sub * 0.75));
+          break;
+        case "bevel":
+          geo = new RoundedBoxGeometry(1.0, 1.0, 1.0, 6, 0.04);
+          break;
+        default:
+          geo = new THREE.BoxGeometry(1.0, 1.0, 1.0, sub, sub, sub);
+      }
+
+      if (geo.attributes.uv && !geo.attributes.uv2) {
+        geo.setAttribute("uv2", geo.attributes.uv);
+      }
+
+      currentMesh = new THREE.Mesh(geo, material);
+      scene.add(currentMesh);
+      document.getElementById("hudMesh").textContent = document.querySelector(`#meshGroup [data-geo="${type}"]`)?.textContent || type;
+    }
+
+    function loadTexture(url, isColor) {
+      return new Promise((resolve, reject) => {
+        loader.load(url, (image) => {
+          const tex = new THREE.Texture(image);
+          tex.flipY = false; // ImageBitmapLoader already flipped the pixels.
+          tex.colorSpace = isColor ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+          tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+          tex.needsUpdate = true;
+          resolve(tex);
+        }, undefined, reject);
+      });
+    }
+
+    function updateMaterial() {
+      const chkAlbedo = document.getElementById("chkAlbedo").checked;
+      const chkNormal = document.getElementById("chkNormal").checked;
+      const chkDisp = document.getElementById("chkDisp").checked;
+      const chkRough = document.getElementById("chkRough").checked;
+      const chkAO = document.getElementById("chkAO").checked;
+      const chkWire = document.getElementById("chkWire").checked;
+      const isDirectX = document.getElementById("chkDirectX").checked;
+      const dispVal = parseFloat(document.getElementById("dispScale").value);
+      const nrmVal = parseFloat(document.getElementById("normalScale").value);
+      labUniforms.labDepth.value = emissiveSprite ? 0 : dispVal;
+      labUniforms.labInspect.value = { pbr: 0, albedo: 1, normal: 2, height: 3, roughness: 4, ao: 5 }[inspectMode];
+
+      material.wireframe = chkWire;
+      material.emissive.set(0x000000);
+      material.emissiveMap = null;
+
+      [mapAlbedo, mapNormal, mapHeight, mapRoughness, mapAO].forEach(t => {
+        if (t) t.repeat.set(uvRepeat, uvRepeat);
+      });
+
+      // Isolated Channel Mode (Ableton-style ISO)
+      if (inspectMode === "albedo") {
+        material.map = mapAlbedo;
+        material.color.set(0xffffff);
+        material.normalMap = null;
+        material.displacementMap = null;
+        material.roughnessMap = null;
+        material.roughness = 1.0;
+        material.aoMap = null;
+      } else if (inspectMode === "normal") {
+        material.map = mapNormal;
+        material.color.set(0xffffff);
+        material.normalMap = null;
+        material.displacementMap = null;
+        material.roughnessMap = null;
+        material.roughness = 1.0;
+        material.aoMap = null;
+      } else if (inspectMode === "height") {
+        material.map = mapHeight;
+        material.color.set(0xffffff);
+        material.normalMap = null;
+        material.displacementMap = chkDisp && !emissiveSprite ? mapHeight : null;
+        material.displacementScale = dispVal;
+        material.displacementBias = -dispVal * 0.5;
+        material.roughnessMap = null;
+        material.roughness = 1.0;
+        material.aoMap = null;
+      } else if (inspectMode === "roughness") {
+        material.map = mapRoughness;
+        material.color.set(0xffffff);
+        material.normalMap = null;
+        material.displacementMap = null;
+        material.roughnessMap = null;
+        material.roughness = 1.0;
+        material.aoMap = null;
+      } else if (inspectMode === "ao") {
+        material.map = mapAO;
+        material.color.set(0xffffff);
+        material.normalMap = null;
+        material.displacementMap = null;
+        material.roughnessMap = null;
+        material.roughness = 1.0;
+        material.aoMap = null;
+      } else {
+        // Full PBR Shading Mix
+        material.map = chkAlbedo && mapAlbedo ? mapAlbedo : null;
+        material.color.set(material.map ? 0xffffff : 0x888888);
+
+        material.normalMap = chkNormal && mapNormal ? mapNormal : null;
+        material.normalScale.set(nrmVal, nrmVal * (isDirectX ? -1 : 1));
+
+        material.displacementMap = chkDisp && !emissiveSprite && mapHeight ? mapHeight : null;
+        material.displacementScale = dispVal;
+        material.displacementBias = -dispVal * 0.5;
+
+        material.roughnessMap = chkRough && mapRoughness ? mapRoughness : null;
+        material.roughness = material.roughnessMap ? 1.0 : 0.7;
+
+        material.aoMap = chkAO && mapAO ? mapAO : null;
+        material.aoMapIntensity = 1.0;
+        // This preset has full emission on visible texels. This is not a general
+        // LabPBR emission decoder for arbitrary custom specular maps.
+        if (emissiveSprite && material.map) {
+          material.color.set(0x000000);
+          material.emissive.set(0xffffff);
+          material.emissiveMap = mapAlbedo;
+        }
+      }
+
+      material.alphaTest = material.map && material.map === mapAlbedo ? 0.1 : 0;
+      material.side = THREE.DoubleSide;
+      material.needsUpdate = true;
+      document.getElementById("hudMode").textContent = inspectMode === "pbr" ? "FULL PBR" : `ISO: ${inspectMode.toUpperCase()}`;
+    }
+
+    async function loadPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+
+      document.getElementById("hudPreset").textContent = p.name;
+      // One depth slider serves every material, but shallow-jointed masonry
+      // shreds at rock depths. Presets carry a suggestion; the slider stays manual.
+      if (p.depth !== undefined) {
+        document.getElementById("dispScale").value = p.depth;
+        document.getElementById("dispScaleVal").textContent = Number(p.depth).toFixed(3);
+      }
+
+      const [alb, nrm, spec] = await Promise.all([
+        loadTexture(p.albedo, true),
+        p.normal ? loadTexture(p.normal, false) : null,
+        p.specular ? loadTexture(p.specular, false) : null
+      ]);
+
+      mapAlbedo = alb;
+      mapNormal = nrm;
+      mapHeight = nrm;
+      mapAO = nrm;
+      mapRoughness = spec;
+      emissiveSprite = !!p.emissiveSprite;
+
+      document.getElementById("lblAlb").classList.add("loaded");
+      document.getElementById("lblNrm").classList.toggle("loaded", !!nrm);
+      document.getElementById("lblSpec").classList.toggle("loaded", !!spec);
+
+      updateMaterial();
+    }
+
+    async function handleFile(file, hint) {
+      emissiveSprite = false;
+      const name = file.name.toLowerCase();
+      document.getElementById("presetSelect").value = "custom";
+      document.getElementById("hudPreset").textContent = file.name;
+
+      if (hint === "normal" || name.includes("_n") || name.includes("norm")) {
+        const tex = await loadTexture(URL.createObjectURL(file), false);
+        mapNormal = tex;
+        mapHeight = tex;
+        mapAO = tex;
+        document.getElementById("lblNrm").classList.add("loaded");
+      } else if (hint === "specular" || name.includes("_s") || name.includes("spec") || name.includes("rough")) {
+        const tex = await loadTexture(URL.createObjectURL(file), false);
+        mapRoughness = tex;
+        document.getElementById("lblSpec").classList.add("loaded");
+      } else {
+        mapAlbedo = await loadTexture(URL.createObjectURL(file), true);
+        document.getElementById("lblAlb").classList.add("loaded");
+      }
+      updateMaterial();
+    }
+
+    // --- Tooltip Logic ---
+    const tooltip = document.getElementById("globalTooltip");
+    const tipTitle = document.getElementById("tipTitle");
+    const tipBody = document.getElementById("tipBody");
+    const tipRec = document.getElementById("tipRec");
+
+    document.querySelectorAll(".info-btn").forEach(btn => {
+      btn.addEventListener("mouseenter", (e) => {
+        tipTitle.textContent = btn.dataset.title || "Setting Info";
+        tipBody.textContent = btn.dataset.body || "";
+        if (btn.dataset.rec) {
+          tipRec.textContent = btn.dataset.rec;
+          tipRec.style.display = "block";
+        } else {
+          tipRec.textContent = "";
+          tipRec.style.display = "none";
+        }
+
+        tooltip.classList.add("visible");
+        const rect = btn.getBoundingClientRect();
+        let top = rect.top - 8;
+        let left = rect.right + 10;
+
+        // Keep inside window vertically
+        if (top + tooltip.offsetHeight > window.innerHeight - 16) {
+          top = window.innerHeight - tooltip.offsetHeight - 16;
+        }
+        if (top < 16) top = 16;
+
+        // If overflowing right edge, show on left
+        if (left + tooltip.offsetWidth > window.innerWidth - 16) {
+          left = rect.left - tooltip.offsetWidth - 10;
+        }
+
+        tooltip.style.top = `${top}px`;
+        tooltip.style.left = `${left}px`;
+      });
+
+      btn.addEventListener("mouseleave", () => {
+        tooltip.classList.remove("visible");
+      });
+    });
+
+    // --- UI Listeners ---
+    document.getElementById("presetSelect").addEventListener("change", (e) => loadPreset(e.target.value));
+
+    document.querySelectorAll("#meshGroup .btn-toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#meshGroup .btn-toggle").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        setGeometry(btn.dataset.geo);
+      });
+    });
+
+    document.querySelectorAll("#subdivGroup .btn-toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#subdivGroup .btn-toggle").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentSubdivisions = parseInt(btn.dataset.subdiv, 10);
+        setGeometry(currentGeoType);
+      });
+    });
+
+    // ISO / Isolate Channel Buttons (Ableton-style)
+    document.querySelectorAll(".btn-iso").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetIso = btn.dataset.iso;
+        if (inspectMode === targetIso) {
+          // Un-isolate: return to full PBR mix
+          inspectMode = "pbr";
+          btn.classList.remove("active");
+        } else {
+          // Isolate selected channel
+          document.querySelectorAll(".btn-iso").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          inspectMode = targetIso;
+        }
+        updateMaterial();
+      });
+    });
+
+    document.querySelectorAll("#tilingGroup .btn-toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#tilingGroup .btn-toggle").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        uvRepeat = parseInt(btn.dataset.repeat, 10);
+        updateMaterial();
+      });
+    });
+
+    ["chkAlbedo", "chkNormal", "chkDisp", "chkRough", "chkAO", "chkDirectX", "chkWire"].forEach(id => {
+      document.getElementById(id).addEventListener("change", updateMaterial);
+    });
+
+    const dispSlider = document.getElementById("dispScale");
+    dispSlider.addEventListener("input", () => {
+      document.getElementById("dispScaleVal").textContent = dispSlider.value;
+      updateMaterial();
+    });
+
+    const nrmSlider = document.getElementById("normalScale");
+    nrmSlider.addEventListener("input", () => {
+      document.getElementById("normalScaleVal").textContent = nrmSlider.value;
+      updateMaterial();
+    });
+
+    function updateSun() {
+      const elev = parseFloat(document.getElementById("sunElevation").value) * (Math.PI / 180);
+      const azim = parseFloat(document.getElementById("sunAzimuth").value) * (Math.PI / 180);
+      const dist = 3.6;
+      dirLight.position.set(
+        dist * Math.cos(elev) * Math.sin(azim),
+        dist * Math.sin(elev),
+        dist * Math.cos(elev) * Math.cos(azim)
+      );
+    }
+    document.getElementById("sunElevation").addEventListener("input", (e) => {
+      document.getElementById("sunElevVal").textContent = e.target.value + "°";
+      updateSun();
+    });
+    document.getElementById("sunAzimuth").addEventListener("input", (e) => {
+      document.getElementById("sunAzVal").textContent = e.target.value + "°";
+      updateSun();
+    });
+    updateSun();
+
+    // Panel Toggle
+    document.getElementById("togglePanel").addEventListener("click", () => {
+      document.getElementById("uiPanel").classList.toggle("collapsed");
+    });
+
+    // Reset Camera
+    document.getElementById("btnResetCamera").addEventListener("click", () => {
+      camera.position.set(1.6, 1.2, 1.6);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    });
+
+    // File buttons
+    document.getElementById("fileAlb").addEventListener("change", (e) => e.target.files[0] && handleFile(e.target.files[0], "albedo"));
+    document.getElementById("fileNrm").addEventListener("change", (e) => e.target.files[0] && handleFile(e.target.files[0], "normal"));
+    document.getElementById("fileSpec").addEventListener("change", (e) => e.target.files[0] && handleFile(e.target.files[0], "specular"));
+
+    // Drag and drop
+    const dropZone = document.getElementById("dropZone");
+    ["dragenter", "dragover"].forEach(evt => {
+      window.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.add("dragover"); });
+    });
+    ["dragleave", "drop"].forEach(evt => {
+      window.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.remove("dragover"); });
+    });
+    window.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files) {
+        Array.from(e.dataTransfer.files).forEach(f => handleFile(f));
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // --- Render Loop ---
+    let sunAngle = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (document.getElementById("chkAutoRotate").checked && currentMesh) {
+        currentMesh.rotation.y += 0.005;
+      }
+
+      if (document.getElementById("chkOrbitSun").checked) {
+        sunAngle += 0.01;
+        const deg = Math.round((sunAngle * (180 / Math.PI)) % 360);
+        document.getElementById("sunAzimuth").value = deg;
+        document.getElementById("sunAzVal").textContent = deg + "°";
+        updateSun();
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Initialize
+    setGeometry("box");
+    const requestedPreset = new URLSearchParams(location.search).get("preset");
+    const initialPreset = Object.hasOwn(PRESETS, requestedPreset) ? requestedPreset : "vanilla_cobble_mat";
+    document.getElementById("presetSelect").value = initialPreset;
+    loadPreset(initialPreset).catch(error => {
+      document.getElementById("hudPreset").textContent = `Load failed: ${error.message || error}`;
+    });
+    animate();
+  </script>
+</body>
+</html>

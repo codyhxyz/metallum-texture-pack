@@ -1,0 +1,187 @@
+{
+  "authoring": {
+    "artLimitations": "Four material showcase only. Corrugated scanned iron replaces an iron-block face; emission on photographed rock is authored. Neither was physically calibrated in Minecraft or a headset.",
+    "fallback": "Level4 (128-square) of the same chain for ordinary vanilla/Materials consumers.",
+    "mips": "2x2 linear-light box for albedo; MaterialImages.average rules for data maps: normal vector renormalization, modal metal codes with first-sample tie break, emission sentinel decoded before averaging.",
+    "normal": "Source DirectX X/Y in R/G; source AO in B; source displacement in A.",
+    "quantization": "RGBA8 output. Pillow decodes 16-bit RGB PNG to 8-bit RGB; scalar 16-bit maps use rounded division by 257.",
+    "sourceResampling": "Poly Haven supplies the 2048-square export; its reconstruction filter is not specified. No source upscaling or geometric resampling here.",
+    "specular": "R=255-source perceptual roughness, G=10 dielectric or 230 iron where the source metalness mask >=128, B=0 (no authored porosity/subsurface), A=255 no emission or authored192 for glowstone."
+  },
+  "license": "CC0-1.0",
+  "licenseTextUrl": "https://creativecommons.org/publicdomain/zero/1.0/legalcode",
+  "licenseUrl": "https://polyhaven.com/license",
+  "sources": {
+    "corrugated_iron": {
+      "authors": {
+        "Dimitrios Savva": "Photography",
+        "Jenelle van Heerden": "Processing"
+      },
+      "downloadResolution": [
+        2048,
+        2048
+      ],
+      "files": {
+        "AO": {
+          "md5": "4776fda10426b156c88e6d9d2351697f",
+          "pngBitDepth": 16,
+          "sha256": "328d7be31133c64935677f57a462be7222b0b9497b91949a537d3021227dcea3",
+          "size": 6125448,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/corrugated_iron/corrugated_iron_ao_2k.png"
+        },
+        "Diffuse": {
+          "md5": "94457bfd1f8facd2f1da7c23a911d86d",
+          "pngBitDepth": 16,
+          "sha256": "6e09eff32e75852f93787933d477544a4406e972da05693a5c8a2831bd131b88",
+          "size": 21504313,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/corrugated_iron/corrugated_iron_diff_2k.png"
+        },
+        "Displacement": {
+          "md5": "7958802b998b4ba1ffa37c7d95eb463c",
+          "pngBitDepth": 16,
+          "sha256": "a154c7401bd0062dfc611c0dce7c6e44d1616b578883f92d08387c07dbe3ea3d",
+          "size": 5296841,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/corrugated_iron/corrugated_iron_disp_2k.png"
+        },
+        "Metal": {
+          "md5": "bd71a637d562c44c95556b757fdab24a",
+          "pngBitDepth": 16,
+          "sha256": "661c6447e53007c15d3bddf39d581d2db1c6960a95c962813df61854a5eeffb2",
+          "size": 7163587,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/corrugated_iron/corrugated_iron_metal_2k.png"
+        },
+        "Rough": {
+          "md5": "8a2258f4651f6050a227bae3095f0cbf",
+          "pngBitDepth": 16,
+          "sha256": "e1a6463a0af285615f15b67a2985c45df08de26913f50a909395f639b0209b14",
+          "size": 6833630,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/corrugated_iron/corrugated_iron_rough_2k.png"
+        },
+        "nor_dx": {
+          "md5": "11c0f05d2c461560a2106a7ff681db65",
+          "pngBitDepth": 16,
+          "sha256": "892d63c9dbd96446b28359ae383e1efa0acda020d191464a5b53e2223dda31d5",
+          "size": 22419357,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/corrugated_iron/corrugated_iron_nor_dx_2k.png"
+        }
+      },
+      "license": "CC0-1.0",
+      "metadataUrl": "https://api.polyhaven.com/info/corrugated_iron",
+      "originalMaxResolution": [
+        16384,
+        16384
+      ],
+      "url": "https://polyhaven.com/a/corrugated_iron"
+    },
+    "plank_flooring": {
+      "authors": {
+        "Dario Barresi": "Processing",
+        "Dimitrios Savva": "Photography",
+        "Rico Cilliers": "Tiling"
+      },
+      "downloadResolution": [
+        2048,
+        2048
+      ],
+      "files": {
+        "AO": {
+          "md5": "1abceb29258cd23b1afe92685d758c01",
+          "pngBitDepth": 16,
+          "sha256": "8ae3cbbb84981cf1c715af3f3abab73f04bd27530b1140f61768aedd56c85439",
+          "size": 7161583,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/plank_flooring/plank_flooring_ao_2k.png"
+        },
+        "Diffuse": {
+          "md5": "bf3ccffb267e6b96619d1968e5b83680",
+          "pngBitDepth": 16,
+          "sha256": "14245943d6b463a11294b763869f85871f564105423af08e0a831a70397c86b4",
+          "size": 21521309,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/plank_flooring/plank_flooring_diff_2k.png"
+        },
+        "Displacement": {
+          "md5": "5e3b9b8199d71497faec06a213a47234",
+          "pngBitDepth": 16,
+          "sha256": "8807a3e3a270df079699ca7285704f819419fa4ca12ad1767a6bb4d462e032ad",
+          "size": 6605438,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/plank_flooring/plank_flooring_disp_2k.png"
+        },
+        "Rough": {
+          "md5": "002438cb745107e951bf71f5ce81f787",
+          "pngBitDepth": 16,
+          "sha256": "2a3b15d84b14f9b3a012b764dd3058effd729ebe2caf66bff254561af4326574",
+          "size": 9847713,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/plank_flooring/plank_flooring_rough_2k.png"
+        },
+        "nor_dx": {
+          "md5": "e65fc7e98143ea13f172776d7df21b2d",
+          "pngBitDepth": 16,
+          "sha256": "ee1b42ffd3f287742a58bef67723730fa4a345df5dc8a8de07029eee65309065",
+          "size": 18324849,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/plank_flooring/plank_flooring_nor_dx_2k.png"
+        }
+      },
+      "license": "CC0-1.0",
+      "metadataUrl": "https://api.polyhaven.com/info/plank_flooring",
+      "originalMaxResolution": [
+        8192,
+        8192
+      ],
+      "url": "https://polyhaven.com/a/plank_flooring"
+    },
+    "rock_boulder_dry": {
+      "authors": {
+        "Dimitrios Savva": "Photography",
+        "Rico Cilliers": "Processing"
+      },
+      "downloadResolution": [
+        2048,
+        2048
+      ],
+      "files": {
+        "AO": {
+          "md5": "20486611b15d85ca9e3cd3f7a4e20bb7",
+          "pngBitDepth": 16,
+          "sha256": "05fa0629f10a1ae3854dee9f03c1e3715486203cca80c4cf9708a91394509679",
+          "size": 7233204,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/rock_boulder_dry/rock_boulder_dry_ao_2k.png"
+        },
+        "Diffuse": {
+          "md5": "9d024d71c2a53547204694a0a411f44c",
+          "pngBitDepth": 16,
+          "sha256": "bba278641d6cda8c6907ee34b749b0b968a1731ca697470ba64a5819e8288085",
+          "size": 22821106,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/rock_boulder_dry/rock_boulder_dry_diff_2k.png"
+        },
+        "Displacement": {
+          "md5": "d0311db1a3b0fe68b7e634abfdbccef6",
+          "pngBitDepth": 16,
+          "sha256": "e07b06123bda2156f2a0fef79b0edb77280295135cb5063e7794998ff3e69a90",
+          "size": 8088495,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/rock_boulder_dry/rock_boulder_dry_disp_2k.png"
+        },
+        "Rough": {
+          "md5": "32987c9755b0584eeec7f90b1e0b5a38",
+          "pngBitDepth": 16,
+          "sha256": "236c8c8bcb210db07fc0dc83ac0de8a843d26ee12766a5bb8ce0b29aa9915def",
+          "size": 10088454,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/rock_boulder_dry/rock_boulder_dry_rough_2k.png"
+        },
+        "nor_dx": {
+          "md5": "7d3f1f4af4c53f1777ba6b728d182220",
+          "pngBitDepth": 16,
+          "sha256": "f2d6c1bb170ab6c2ffd182a4fbe516854ae0f013df15ef7cfa4582d054e0f1a7",
+          "size": 21992760,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/rock_boulder_dry/rock_boulder_dry_nor_dx_2k.png"
+        }
+      },
+      "license": "CC0-1.0",
+      "metadataUrl": "https://api.polyhaven.com/info/rock_boulder_dry",
+      "originalMaxResolution": [
+        16384,
+        16384
+      ],
+      "url": "https://polyhaven.com/a/rock_boulder_dry"
+    }
+  },
+  "version": 1
+}

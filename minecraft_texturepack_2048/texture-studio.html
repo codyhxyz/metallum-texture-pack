@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Minecraft Texture Workshop</title>
+  <style>
+    :root { color-scheme: dark; --bg: #14161a; --surface: #1a1e25; --line: #343b46; --text: #e6edf3; --muted: #aab5c3; --accent: #38bdf8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+    ::selection { background: #075985; color: white; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    * { scrollbar-color: #596575 var(--bg); scrollbar-width: thin; }
+    button, input, select, textarea { font: inherit; color: inherit; accent-color: var(--accent); }
+    button, input, select, textarea { background: #222832; border: 1px solid #4b5665; border-radius: 5px; padding: 7px 10px; }
+    input, select, textarea { max-width: 100%; width: 100%; }
+    input[type=checkbox], input[type=color] { width: auto; }
+    input[type=color] { width: 38px; height: 30px; padding: 2px; }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    button { cursor: pointer; }
+    button:hover:not(:disabled) { border-color: var(--accent); background: #273747; }
+    button:disabled { cursor: not-allowed; opacity: 0.55; }
+    a { color: var(--accent); text-underline-offset: 3px; }
+    h1 { font-size: 20px; margin: 0; font-weight: 650; }
+    h2 { font-size: 19px; margin: 0; overflow-wrap: anywhere; }
+    h3 { font-size: 15px; margin: 22px 0 8px; }
+    p { margin: 8px 0; }
+    small, .muted { color: var(--muted); }
+    header { display: flex; align-items: center; gap: 32px; padding: 16px 22px; border-bottom: 1px solid var(--line); }
+    .coverage { flex: 1; max-width: 800px; font-variant-numeric: tabular-nums; }
+    progress { width: 100%; height: 9px; display: block; margin: 6px 0; accent-color: var(--accent); }
+    main { display: grid; grid-template-columns: 272px minmax(320px, 1fr) 338px; height: calc(100dvh - 125px); min-height: 480px; }
+    nav { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--line); }
+    .filters { padding: 16px; display: grid; gap: 8px; }
+    #blockList { overflow: auto; padding-bottom: 20px; }
+    .block-row { width: 100%; border: 0; border-radius: 0; background: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; padding: 10px 16px; }
+    .block-row[aria-current=true] { background: #183e52; color: white; }
+    .block-row span:first-child { overflow-wrap: anywhere; }
+    .status { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; color: var(--muted); }
+    .status.partial { color: #f0c572; }
+    .status.complete { color: #89d9aa; }
+    #workspace { min-width: 0; display: flex; flex-direction: column; }
+    .workspace-head { padding: 18px 20px 12px; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 0 20px 12px; }
+    .toolbar label { display: flex; align-items: center; gap: 6px; }
+    .toolbar select { width: auto; max-width: 160px; }
+    #stateControls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    #stateControls label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+    #stage { flex: 1; min-height: 260px; position: relative; background: #171c23; }
+    canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+    #stageHint { position: absolute; left: 16px; bottom: 10px; right: 16px; pointer-events: none; color: #c4ceda; font-size: 12px; }
+    #modelNotes { padding: 10px 20px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); max-height: 110px; overflow: auto; }
+    aside { overflow: auto; padding: 18px; border-left: 1px solid var(--line); background: var(--surface); }
+    .texture-row { padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .texture-title { border: 0; background: none; padding: 0; text-align: left; width: 100%; overflow-wrap: anywhere; color: var(--accent); }
+    .texture-row.selected .texture-title { color: white; text-decoration: underline; text-underline-offset: 4px; }
+    .texture-row small { display: block; }
+    #textureId { font-size: 13px; overflow-wrap: anywhere; }
+    .source-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+    figure { margin: 0; min-width: 0; }
+    .swatch { aspect-ratio: 1; background: #313844; display: grid; justify-items: center; align-items: start; overflow: hidden; }
+    .swatch img {
+      width: 100%;
+      height: auto;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      image-rendering: pixelated;
+    }
+    figcaption { font-size: 12px; color: var(--muted); margin-top: 5px; }
+    .field { display: grid; gap: 5px; margin-top: 12px; }
+    textarea { resize: vertical; min-height: 76px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .primary { background: #0c5274; border-color: #38bdf8; }
+    .help { font-size: 12px; color: var(--muted); }
+    #message { min-height: 34px; padding: 7px 22px; border-top: 1px solid var(--line); color: var(--muted); }
+    #message.error { color: #ffb1ab; }
+    #message.busy { color: #f0c572; }
+    details { margin: 16px 0; }
+    summary { cursor: pointer; color: var(--muted); }
+    [hidden] { display: none !important; }
+    @media (max-width: 1100px) { main { grid-template-columns: 220px minmax(250px, 1fr) 290px; } header { gap: 20px; } }
+    @media (max-width: 850px) {
+      header { align-items: flex-start; flex-direction: column; gap: 12px; }
+      .coverage { width: 100%; }
+      main { height: auto; min-height: 0; grid-template-columns: 1fr; }
+      nav { border-right: 0; border-bottom: 1px solid var(--line); }
+      .filters { grid-template-columns: 1fr 1fr; }
+      #blockList { max-height: 190px; }
+      #stage { height: 370px; flex: none; }
+      aside { border-left: 0; border-top: 1px solid var(--line); }
+      .source-pair { max-width: 380px; }
+    }
+  </style>
+  <script type="importmap">
+    {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+  </script>
+</head>
+<body>
+  <header>
+    <div><h1>Texture Workshop</h1><small id="version">Reading Minecraft assets…</small></div>
+    <div class="coverage">
+      <strong id="coverageText">Loading block coverage…</strong>
+      <progress id="coverageBar" value="0" max="1" aria-label="Blocks with complete keeper coverage"></progress>
+      <small id="coverageDetail">Only your keeper selections count as complete.</small>
+    </div>
+    <a href="http://localhost:8765/labpbr-viewer.html?preset=candidate_oak_planks" target="_blank" rel="noopener">Material lab</a>
+  </header>
+  <main>
+    <nav aria-label="Minecraft blocks">
+      <div class="filters">
+        <label>Find a block<input id="search" type="search" placeholder="Oak log, furnace, grass…" autocomplete="off"></label>
+        <label>Coverage<select id="statusFilter"><option value="">All blocks</option><option value="partial">Partial</option><option value="missing">Missing</option><option value="complete">Complete</option><option value="excluded">Excluded</option></select></label>
+        <small id="listCount"></small>
+      </div>
+      <div id="blockList"></div>
+    </nav>
+    <section id="workspace" aria-label="Block preview">
+      <div class="workspace-head">
+        <h2 id="blockTitle">Choose a block</h2>
+        <small id="blockCoverage"></small>
+        <div id="stateControls"></div>
+      </div>
+      <div class="toolbar">
+        <label>Show<select id="previewMode"><option value="working">Candidates + keepers</option><option value="keepers">Keepers only</option><option value="vanilla">Vanilla</option></select></label>
+        <label><input id="unlit" type="checkbox" checked>Unlit albedo</label>
+        <label title="Approximate tint for faces with Minecraft tintindex; not a biome simulation.">Tint<input id="tint" type="color" value="#91bd59" aria-label="Approximate biome tint"></label>
+        <button id="resetCamera" type="button">Reset view</button>
+      </div>
+      <div id="stage"><canvas id="canvas" aria-label="Interactive Minecraft block model"></canvas><div id="stageHint">Drag to orbit · Scroll to zoom · Click a face to select its texture</div></div>
+      <div id="modelNotes">Models and face assignments come from the selected Minecraft client JAR. Unreplaced faces use vanilla textures.</div>
+    </section>
+    <aside aria-label="Texture candidates">
+      <strong>Required textures</strong>
+      <p class="help">All states and model alternatives count. Shared textures update every block that uses them.</p>
+      <div id="textureList"></div>
+      <section id="textureEditor" hidden>
+        <h3>Selected texture</h3>
+        <div id="textureId"></div>
+        <div class="source-pair">
+          <figure><div class="swatch"><img id="sourceImage" alt="Vanilla source texture"></div><figcaption>Vanilla source</figcaption></figure>
+          <figure><div class="swatch"><img id="candidateImage" alt="Selected generated candidate" hidden><span id="noCandidate">No candidate</span></div><figcaption id="candidateCaption">Candidate</figcaption></figure>
+        </div>
+        <label class="field">Candidate<select id="candidateSelect"></select></label>
+        <p class="help" id="candidateInfo"></p>
+        <div class="actions">
+          <button id="markKeeper" class="primary" type="button" disabled>Mark as keeper</button>
+          <button id="clearKeeper" type="button" disabled>Clear keeper</button>
+        </div>
+        <details>
+          <summary>Import a candidate</summary>
+          <label class="field">PNG<input id="importPng" type="file" accept="image/png"></label>
+          <label class="field">Animation metadata (optional)<input id="importMeta" type="file" accept=".mcmeta,.json"></label>
+          <button id="importButton" type="button">Import for this texture</button>
+        </details>
+        <h3>Generate a candidate</h3>
+        <label class="field">Material<select id="material"><option>generic</option><option>wood</option><option>stone</option><option>brick</option><option>ore</option><option>metal</option><option>leaves</option><option>fire</option></select></label>
+        <label class="field">Prompt override<textarea id="prompt" placeholder="Optional. Describe the surface, not a whole block or scene."></textarea></label>
+        <label class="field">Seed<input id="seed" type="number" value="42" min="0" max="2147483647" step="1"></label>
+        <label class="field"><span><input id="grayscale" type="checkbox"> Neutral grayscale for biome tint</span></label>
+        <label class="field" id="animationField" hidden>Animation<select id="generationFrames"><option value="preview">First frame only (partial)</option><option value="all">All frames (one generation per frame)</option></select></label>
+        <p class="help">Each face texture is generated separately and shared where Minecraft shares it. Generation never marks a keeper.</p>
+        <button id="generateButton" class="primary" type="button">Generate this texture</button>
+      </section>
+    </aside>
+  </main>
+  <div id="message" role="status" aria-live="polite">Loading local library…</div>
+  <script type="module" src="./texture-studio.mjs"></script>
+</body>
+</html>

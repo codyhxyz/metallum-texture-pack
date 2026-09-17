@@ -1,0 +1,177 @@
+[
+  {
+    "material": "cobblestone",
+    "resolution": 2048,
+    "albedo": {
+      "file": "batch2048-cobblestone.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "279a48d45066c8ddecc1ff3713ede064b191ed3c2ef7d45376333f3a942142f9"
+    },
+    "normal": {
+      "file": "batch2048-cobblestone_n.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "a699cc2cfb906b7f0553520e831fea7087bee953f95902206576a96cdd2ae42e",
+      "normal_xy_std": 79.9
+    },
+    "specular": {
+      "file": "batch2048-cobblestone_s.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "16fd8c83a0dac5a2e33e6d9d67cf1be9919c94e364cc005dcd4f9f051ecefc57",
+      "channels_mean": [
+        67.9,
+        10.0,
+        40.0,
+        255.0
+      ]
+    }
+  },
+  {
+    "material": "bricks",
+    "resolution": 2048,
+    "albedo": {
+      "file": "batch2048-bricks.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "ce3d705c954df77bff513b1c3b7cc4bd053d509fdf72811b1b2ea8be482118b7"
+    },
+    "normal": {
+      "file": "batch2048-bricks_n.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "7edee1c14ff527ccb023c46276adf576453db77221369bc646f1329319ee675c",
+      "normal_xy_std": 79.0
+    },
+    "specular": {
+      "file": "batch2048-bricks_s.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "9a6d4426faefe82a6d8c743b49fea0a1535d1b1b35e96842114e338ee2205bfa",
+      "channels_mean": [
+        68.4,
+        10.0,
+        40.0,
+        255.0
+      ]
+    }
+  },
+  {
+    "material": "iron_ore",
+    "resolution": 2048,
+    "albedo": {
+      "file": "batch2048-iron_ore.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "454df23ac294f2dead7104410952f7e9ce11aa4797db5ddaff703a69456eb184"
+    },
+    "normal": {
+      "file": "batch2048-iron_ore_n.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "d654c97961ff84d7d179a127cba05735bd64689e8eda0316ccac5b35b71d0913",
+      "normal_xy_std": 79.4
+    },
+    "specular": {
+      "file": "batch2048-iron_ore_s.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "0e41397fb7a53eca503c6532656161d534139ba4e3ea7cf46882e4df8aaab468",
+      "channels_mean": [
+        66.5,
+        10.0,
+        40.0,
+        255.0
+      ]
+    }
+  },
+  {
+    "material": "oak_leaves",
+    "resolution": 2048,
+    "albedo": {
+      "file": "batch2048-oak_leaves.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "9c4cef6f81c76f5cfb32c55769506bd855d3a1804b7e432c76e9642e0f3965ec"
+    },
+    "normal": {
+      "file": "batch2048-oak_leaves_n.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "9460973cd6c6d9d00cd4b4b71f6d14da6825ff622a138454b0068ef9e524bfcf",
+      "normal_xy_std": 64.3
+    },
+    "specular": {
+      "file": "batch2048-oak_leaves_s.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "a6a11f3e5667f4015ed2640f2c7603b87d8924953e7a200c708fc29defbe230b",
+      "channels_mean": [
+        68.9,
+        10.0,
+        40.0,
+        255.0
+      ]
+    }
+  },
+  {
+    "material": "oak_planks",
+    "resolution": 2048,
+    "albedo": {
+      "file": "batch2048-oak_planks.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "5b193bb06d0ad97997ed7cdff889f1974a37e72ed43369bcf988a0b2e2f24620"
+    },
+    "normal": {
+      "file": "batch2048-oak_planks_n.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "8fb483d143cd1ca1ad115e40d809ba7c3e7dffabe25ea3c533d2b65d3a778e5d",
+      "normal_xy_std": 88.5
+    },
+    "specular": {
+      "file": "batch2048-oak_planks_s.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "ca47e952279446caad343b2a3f496cb2a10f1e8d854c7d3edb5fcab4cf98768f",
+      "channels_mean": [
+        94.4,
+        10.0,
+        60.0,
+        255.0
+      ]
+    }
+  }
+]
