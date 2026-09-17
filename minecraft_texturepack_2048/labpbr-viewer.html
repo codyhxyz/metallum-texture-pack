@@ -381,6 +381,44 @@
       [hidden] { display: none !important; }
     #modeGroup { grid-template-columns: 1fr 1fr; }
     .note { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin: 0; }
+    /* Block browser sidebar (Minecraft Texture Viewer mode) */
+    #blockSidebar {
+      position: fixed; top: 16px; right: 16px; width: 300px;
+      max-height: calc(100vh - 32px);
+      background: var(--surface);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--surface-border); border-radius: var(--radius);
+      padding: 14px; display: flex; flex-direction: column; gap: 10px; z-index: 5;
+    }
+    #blockSidebar[hidden] { display: none; }
+    .sidebar-title { font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--accent); }
+    .coverage-line { font-size: 12px; color: var(--text); margin: 0; }
+    .coverage-bar { height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; }
+    #coverageFill { height: 100%; background: #58a6ff; width: 0; transition: width 0.4s; }
+    .sidebar-filters { display: flex; flex-direction: column; gap: 8px; }
+    #blockSearch { background: #0d1117; border: 1px solid var(--surface-border);
+      border-radius: 6px; color: var(--text); padding: 7px 10px; font-size: 13px; width: 100%; }
+    #blockListCount { font-size: 11px; color: var(--text-muted); margin: 0; }
+    .block-list { overflow-y: auto; flex: 1; min-height: 120px; display: flex; flex-direction: column; gap: 2px; }
+    .block-row { display: flex; justify-content: space-between; align-items: center;
+      background: transparent; border: 1px solid transparent; border-radius: 6px;
+      color: var(--text); padding: 6px 8px; font-size: 13px; cursor: pointer; text-align: left; }
+    .block-row:hover { background: #161b22; }
+    .block-row.active { border-color: var(--accent); background: #161b22; }
+    .status { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #21262d; color: var(--text-muted); }
+    .status.complete { background: rgba(63, 185, 80, 0.15); color: #3fb950; }
+    .status.partial { background: rgba(210, 153, 34, 0.15); color: #d29922; }
+    .status.missing { background: rgba(248, 81, 73, 0.12); color: #f85149; }
+    .status.excluded { background: #21262d; color: #8b949e; }
+    .block-title { font-size: 15px; font-weight: 600; color: var(--text); margin: 0 0 4px; }
+    .texture-row { display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; color: var(--text); padding: 4px 0; border-bottom: 1px solid #21262d; }
+    .state-controls { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+    .state-controls label { display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; color: var(--text-muted); }
+    .state-controls select { background: #0d1117; border: 1px solid var(--surface-border);
+      border-radius: 6px; color: var(--text); padding: 4px 6px; font-size: 12px; max-width: 140px; }
 </style>
 </head>
 <body>
@@ -396,7 +434,7 @@
     <div class="section" data-mode="lab block">
       <div class="section-title">
         <span>View Mode</span>
-        <button class="info-btn" data-title="View Mode" data-body="Material Lab inspects one PBR material on studio meshes with channel isolation and displacement. Minecraft Texture Viewer renders the texture on a Minecraft cube with nearest-neighbor filtering, the way it looks in game." data-rec="Judge normal and specular quality in Material Lab; check the in-game read in Minecraft Texture Viewer.">i</button>
+        <button class="info-btn" data-title="View Mode" data-body="Material Lab inspects one PBR material on studio meshes with channel isolation and displacement. Minecraft Texture Viewer browses every model-backed block with its real Minecraft faces and the pack's coverage." data-rec="Judge normal and specular quality in Material Lab; check pack coverage in Minecraft Texture Viewer.">i</button>
       </div>
       <div class="btn-group" id="modeGroup">
         <button class="btn-toggle active" data-mode="lab">Material Lab</button>
@@ -413,16 +451,28 @@
       <select id="presetSelect"></select>
     </div>
 
-    <!-- MINECRAFT TEXTURE VIEWER -->
+    <!-- BLOCK VIEW -->
     <div class="section" data-mode="block">
       <div class="section-title">
-        <span>Minecraft Texture Viewer</span>
-        <button class="info-btn" data-title="Minecraft Texture Viewer" data-body="Renders the current texture on a Minecraft cube with nearest-neighbor filtering. LabPBR Shading decodes the packed normal and specular maps the way a PBR shader pack would; turn it off for the flat vanilla albedo read." data-rec="Compare against Material Lab under the same sun position.">i</button>
+        <span>View</span>
+        <button class="info-btn" data-title="Block View" data-body="Renders the selected block with its real Minecraft model faces. LabPBR Shading decodes published normal and specular maps the way a PBR shader pack would; turn it off for flat albedo. Faces without published Metallum art show a placeholder." data-rec="Compare blocks against Material Lab under the same sun position.">i</button>
       </div>
       <label class="check-label">
         <input type="checkbox" id="chkBlockPBR" checked> LabPBR Shading
       </label>
-      <p class="note">Nearest-neighbor cube &middot; no displacement &middot; fixed 1&times;1 tiling.</p>
+      <p class="note">Model-accurate faces &middot; nearest sampling &middot; no displacement.</p>
+    </div>
+
+    <!-- BLOCK DETAIL -->
+    <div class="section" data-mode="block">
+      <div class="section-title">
+        <span>Block</span>
+        <button class="info-btn" data-title="Block Detail" data-body="The selected block's textures and their pack status, plus its blockstate variants. Statuses come from the published studio catalog: complete means the texture has an approved keeper." data-rec="Use the state controls to preview variants like log axis or stair shape.">i</button>
+      </div>
+      <p class="block-title" id="blockTitle">&mdash;</p>
+      <div class="state-controls" id="blockStateControls"></div>
+      <div id="blockTextureList"></div>
+      <p class="note" id="blockModelNotes"></p>
     </div>
 
     <!-- GEOMETRY -->
@@ -590,7 +640,7 @@
     </div>
 
     <!-- CUSTOM INPUTS -->
-    <div class="section" data-mode="lab block">
+    <div class="section" data-mode="lab">
       <div class="section-title">
         <span>Custom Textures</span>
         <button class="info-btn" data-title="Custom Textures" data-body="Loads local texture files from your machine into the 3D preview." data-rec="Drag and drop any files into the window. Files containing _n or _s are automatically routed to their channels.">i</button>
@@ -619,6 +669,26 @@
     <div style="font-size: 11px; opacity: 0.7;">Left drag: Rotate • Right drag: Pan • Scroll: Zoom</div>
   </div>
 
+  <aside id="blockSidebar" hidden>
+    <div class="sidebar-title">Blocks</div>
+    <p class="coverage-line" id="coverageLine">Loading catalog&hellip;</p>
+    <div class="coverage-bar"><div id="coverageFill"></div></div>
+    <p class="note" id="coverageDetail"></p>
+    <div class="sidebar-filters">
+      <input id="blockSearch" type="search" placeholder="Search blocks&hellip;" autocomplete="off">
+      <select id="blockStatusFilter">
+        <option value="">All statuses</option>
+        <option value="complete">Complete</option>
+        <option value="partial">Partial</option>
+        <option value="missing">Missing</option>
+        <option value="excluded">Excluded</option>
+      </select>
+    </div>
+    <p id="blockListCount"></p>
+    <div class="block-list" id="blockList"></div>
+    <p class="note" id="catalogNote" hidden></p>
+  </aside>
+
   <canvas id="viewport"></canvas>
 
   <script type="importmap">
@@ -634,9 +704,11 @@
     import * as THREE from "three";
     import { OrbitControls } from "three/addons/controls/OrbitControls.js";
     import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
-    import { patchLabPBR, HEIGHT_RANGE } from "./labpbr-viewer-shaders.mjs";
+    import { patchLabPBR } from "./labpbr-viewer-shaders.mjs";
     import { PRESETS, PRESET_ORDER, DEFAULT_PRESET } from "./viewer-presets.mjs";
     import { configureTexLoader, loadTexture } from "./viewer-texload.mjs";
+    import { properties, animationFrame } from "./minecraft-model.mjs";
+    import { displayName, loadCatalog, loadBlockDetail, buildBlockGroup } from "./block-browser.mjs";
 
     const canvas = document.getElementById("viewport");
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -675,20 +747,12 @@
     material.onBeforeCompile = shader => patchLabPBR(shader, THREE.ShaderChunk, labUniforms);
     material.customProgramCacheKey = () => "labpbr-calibrated-v1";
 
-    // --- Block mode materials: the in-game read on a Minecraft cube ---
-    // Same LabPBR patch at neutral depth (labDepth = HEIGHT_RANGE scales the
-    // packed normals by exactly 1.0), no displacement, nearest-neighbor sampling.
-    const blockUniforms = { labDepth: { value: HEIGHT_RANGE }, labInspect: { value: 0 } };
-    const blockMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      roughness: 1.0,
-      metalness: 0.0
-    });
-    blockMaterial.normalScale.set(1, -1);
-    blockMaterial.onBeforeCompile = shader => patchLabPBR(shader, THREE.ShaderChunk, blockUniforms);
-    blockMaterial.customProgramCacheKey = () => "labpbr-block-v1";
-    // Flat vanilla fallback: albedo only under simple lambert lighting.
-    const blockVanillaMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    const CATALOG_BASE = "studio-catalog";
+    const blockBrowser = {
+      catalog: null, failed: false, detail: null, blockId: null,
+      state: {}, alternative: 0, group: null, animations: [],
+      textureCache: new Map(),
+    };
 
     let currentMesh = null;
     let uvRepeat = 1;
@@ -714,21 +778,6 @@
 
     function currentMaps() {
       return [mapAlbedo, mapNormal, mapHeight, mapRoughness, mapAO];
-    }
-
-    function applyMagFilter() {
-      // Minecraft samples block textures nearest-neighbor; the lab inspects
-      // them filtered. Filter choice is per texture, so flip it on mode change.
-      const block = viewMode === "block";
-      const mag = block ? THREE.NearestFilter : THREE.LinearFilter;
-      const min = block ? THREE.NearestMipmapLinearFilter : THREE.LinearMipmapLinearFilter;
-      for (const t of currentMaps()) {
-        if (t && t.magFilter !== mag) {
-          t.magFilter = mag;
-          t.minFilter = min;
-          t.needsUpdate = true;
-        }
-      }
     }
 
     function setGeometry(type) {
@@ -779,7 +828,6 @@
       const nrmVal = parseFloat(document.getElementById("normalScale").value);
       labUniforms.labDepth.value = emissiveSprite ? 0 : dispVal;
       labUniforms.labInspect.value = { pbr: 0, albedo: 1, normal: 2, height: 3, roughness: 4, ao: 5 }[inspectMode];
-      applyMagFilter();
 
       material.wireframe = chkWire;
       material.emissive.set(0x000000);
@@ -864,56 +912,224 @@
       document.getElementById("hudMode").textContent = inspectMode === "pbr" ? "MATERIAL LAB · FULL PBR" : `MATERIAL LAB · ISO: ${inspectMode.toUpperCase()}`;
     }
 
-    function updateBlockMaterial() {
-      const usePBR = document.getElementById("chkBlockPBR").checked;
-      applyMagFilter();
-
-      blockMaterial.map = usePBR && mapAlbedo ? mapAlbedo : null;
-      blockMaterial.color.set(blockMaterial.map ? 0xffffff : 0x888888);
-      blockMaterial.normalMap = usePBR ? mapNormal : null;
-      blockMaterial.roughnessMap = usePBR ? mapRoughness : null;
-      blockMaterial.roughness = blockMaterial.roughnessMap ? 1.0 : 0.9;
-      blockMaterial.aoMap = usePBR ? mapAO : null;
-      blockMaterial.aoMapIntensity = 1.0;
-      blockMaterial.needsUpdate = true;
-
-      blockVanillaMaterial.map = !usePBR && mapAlbedo ? mapAlbedo : null;
-      blockVanillaMaterial.color.set(blockVanillaMaterial.map ? 0xffffff : 0x888888);
-      blockVanillaMaterial.needsUpdate = true;
-
-      if (currentMesh && viewMode === "block") {
-        currentMesh.material = usePBR ? blockMaterial : blockVanillaMaterial;
-      }
-      document.getElementById("hudMode").textContent = usePBR ? "TEXTURE VIEWER · PBR" : "TEXTURE VIEWER · VANILLA";
+    // --- Minecraft Texture Viewer: the static block browser ---
+    function disposeGroup(group) {
+      group.traverse(child => { child.geometry?.dispose(); child.material?.dispose(); });
     }
 
-    function refreshMaterials() {
-      if (viewMode === "block") updateBlockMaterial();
-      else updateMaterial();
+    function renderCoverage() {
+      const s = blockBrowser.catalog.summary;
+      document.getElementById("coverageLine").textContent =
+        `${s.percent}% complete · ${s.complete} / ${s.trackable} model-backed blocks`;
+      document.getElementById("coverageFill").style.width = `${s.percent}%`;
+      document.getElementById("coverageDetail").textContent =
+        `${s.partial} partial · ${s.missing} missing · ${s.excluded} excluded`;
+    }
+
+    function renderBlockList() {
+      const search = document.getElementById("blockSearch").value.trim().toLowerCase().replaceAll(" ", "_");
+      const filter = document.getElementById("blockStatusFilter").value;
+      const blocks = blockBrowser.catalog.blocks.filter(item =>
+        item.id.toLowerCase().includes(search) && (!filter || item.status === filter));
+      document.getElementById("blockListCount").textContent =
+        `${blocks.length} of ${blockBrowser.catalog.blocks.length} blocks`;
+      const list = document.getElementById("blockList");
+      list.replaceChildren();
+      const fragment = document.createDocumentFragment();
+      for (const item of blocks) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "block-row" + (item.id === blockBrowser.blockId ? " active" : "");
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = displayName(item.id);
+        const statusSpan = document.createElement("span");
+        statusSpan.className = `status ${item.status}`;
+        statusSpan.textContent = item.status;
+        button.append(nameSpan, statusSpan);
+        button.addEventListener("click", () => selectBlock(item.id).catch(blockError));
+        fragment.append(button);
+      }
+      if (!blocks.length) {
+        const empty = document.createElement("p");
+        empty.className = "note";
+        empty.textContent = "No blocks match this filter.";
+        fragment.append(empty);
+      }
+      list.append(fragment);
+    }
+
+    function blockError(error) {
+      document.getElementById("blockModelNotes").textContent = `Couldn't load that block: ${error.message || error}`;
+    }
+
+    function renderBlockDetail() {
+      const detail = blockBrowser.detail;
+      const catalog = blockBrowser.catalog;
+      document.getElementById("blockTitle").textContent = displayName(detail.id);
+      document.getElementById("blockTitle").title = detail.id;
+
+      // Texture list with per-texture status.
+      const texList = document.getElementById("blockTextureList");
+      texList.replaceChildren();
+      const fragment = document.createDocumentFragment();
+      for (const texId of detail.textures) {
+        const info = catalog.textures[texId] || {};
+        const row = document.createElement("div");
+        row.className = "texture-row";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = displayName(texId);
+        nameSpan.title = texId;
+        const statusSpan = document.createElement("span");
+        statusSpan.className = `status ${info.status || "missing"}`;
+        statusSpan.textContent = info.art ? `${info.status} · Metallum` : (info.status || "missing");
+        row.append(nameSpan, statusSpan);
+        fragment.append(row);
+      }
+      texList.append(fragment);
+
+      // Blockstate variant controls (static; mirrors the studio).
+      const controlsBox = document.getElementById("blockStateControls");
+      controlsBox.replaceChildren();
+      const cFragment = document.createDocumentFragment();
+      for (const [key, values] of Object.entries(properties(detail.blockstate))) {
+        const label = document.createElement("label");
+        label.textContent = key;
+        const select = document.createElement("select");
+        for (const value of values) select.add(new Option(value, value));
+        if (!values.includes(blockBrowser.state[key])) {
+          blockBrowser.state[key] = key === "axis" && values.includes("y") ? "y"
+            : values.includes("false") ? "false" : values[0];
+        }
+        select.value = blockBrowser.state[key];
+        select.addEventListener("change", () => {
+          blockBrowser.state[key] = select.value;
+          rebuildBlock().catch(blockError);
+        });
+        label.append(select);
+        cFragment.append(label);
+      }
+      const choices = [
+        ...Object.values(detail.blockstate.variants || {}),
+        ...(detail.blockstate.multipart || []).map(part => part.apply),
+      ];
+      const maxAlternatives = Math.max(1, ...choices.map(c => Array.isArray(c) ? c.length : 1));
+      if (maxAlternatives > 1) {
+        const label = document.createElement("label");
+        label.textContent = "Model alternative";
+        const select = document.createElement("select");
+        for (let i = 0; i < maxAlternatives; i++) select.add(new Option(String(i + 1), String(i)));
+        select.value = String(blockBrowser.alternative);
+        select.addEventListener("change", () => {
+          blockBrowser.alternative = Number(select.value);
+          rebuildBlock().catch(blockError);
+        });
+        label.append(select);
+        cFragment.append(label);
+      }
+      controlsBox.append(cFragment);
+    }
+
+    async function rebuildBlock() {
+      const { detail, catalog } = blockBrowser;
+      if (!detail || !catalog || viewMode !== "block") return;
+      if (blockBrowser.group) {
+        scene.remove(blockBrowser.group);
+        disposeGroup(blockBrowser.group);
+        blockBrowser.group = null;
+      }
+      const artMap = {};
+      for (const [texId, info] of Object.entries(catalog.textures)) {
+        if (info.art) artMap[texId] = info.art;
+      }
+      const env = {
+        THREE, patchLabPBR,
+        textureCache: blockBrowser.textureCache,
+        maxAnisotropy: renderer.capabilities.getMaxAnisotropy?.() || 1,
+        catalogBase: CATALOG_BASE,
+      };
+      const built = await buildBlockGroup(env, detail, artMap, {
+        state: blockBrowser.state,
+        alternative: blockBrowser.alternative,
+        usePBR: document.getElementById("chkBlockPBR").checked,
+      });
+      blockBrowser.group = built.group;
+      blockBrowser.animations = built.animations;
+      scene.add(built.group);
+      document.getElementById("blockModelNotes").textContent = built.notes;
+      document.getElementById("hudMesh").textContent = displayName(detail.id);
+      document.getElementById("hudMode").textContent = "TEXTURE VIEWER";
+    }
+
+    async function selectBlock(id) {
+      if (!blockBrowser.catalog || blockBrowser.blockId === id) {
+        if (blockBrowser.blockId === id) renderBlockList();
+        return;
+      }
+      blockBrowser.blockId = id;
+      blockBrowser.state = {};
+      blockBrowser.alternative = 0;
+      blockBrowser.detail = await loadBlockDetail(CATALOG_BASE, id);
+      renderBlockDetail();
+      renderBlockList();
+      await rebuildBlock();
+      camera.position.set(2.4, 1.8, 2.7);
+      controls.target.set(0, 0, 0);
+      controls.update();
+      const url = new URL(location.href);
+      url.searchParams.set("block", id);
+      history.replaceState(null, "", url);
+    }
+
+    async function enterBlockMode() {
+      document.getElementById("blockSidebar").hidden = false;
+      if (!blockBrowser.catalog && !blockBrowser.failed) {
+        const note = document.getElementById("catalogNote");
+        try {
+          blockBrowser.catalog = await loadCatalog(CATALOG_BASE);
+          note.hidden = true;
+          renderCoverage();
+          renderBlockList();
+        } catch (error) {
+          blockBrowser.failed = true;
+          note.hidden = false;
+          note.textContent = "No published block catalog yet. Run export_studio_catalog.py on the studio machine, commit studio-catalog/, and push.";
+          return;
+        }
+      }
+      if (!blockBrowser.catalog) return;
+      if (!blockBrowser.detail) {
+        const requested = new URLSearchParams(location.search).get("block");
+        const blocks = blockBrowser.catalog.blocks;
+        const first = blocks.find(item => item.id === requested)
+          || blocks.find(item => item.status === "complete")
+          || blocks[0];
+        if (first) await selectBlock(first.id).catch(blockError);
+      } else if (blockBrowser.group && !blockBrowser.group.parent) {
+        scene.add(blockBrowser.group);
+        document.getElementById("hudMesh").textContent = displayName(blockBrowser.detail.id);
+        document.getElementById("hudMode").textContent = "TEXTURE VIEWER";
+      }
     }
 
     function setViewMode(mode) {
       viewMode = mode;
       document.querySelectorAll("#modeGroup .btn-toggle").forEach(b =>
         b.classList.toggle("active", b.dataset.mode === mode));
-      document.querySelectorAll("[data-mode]").forEach(el => {
+      // Toggle sections only — the mode buttons themselves stay visible.
+      document.querySelectorAll(".section[data-mode]").forEach(el => {
         el.hidden = !el.dataset.mode.split(" ").includes(mode);
       });
 
-      if (currentMesh) {
-        scene.remove(currentMesh);
-        currentMesh.geometry.dispose();
-        currentMesh = null;
-      }
-
       if (mode === "block") {
-        const geo = new THREE.BoxGeometry(1, 1, 1);
-        const usePBR = document.getElementById("chkBlockPBR").checked;
-        currentMesh = new THREE.Mesh(geo, usePBR ? blockMaterial : blockVanillaMaterial);
-        scene.add(currentMesh);
-        document.getElementById("hudMesh").textContent = "Minecraft Cube";
-        updateBlockMaterial();
+        if (currentMesh) {
+          scene.remove(currentMesh);
+          currentMesh.geometry.dispose();
+          currentMesh = null;
+        }
+        enterBlockMode().catch(blockError);
       } else {
+        document.getElementById("blockSidebar").hidden = true;
+        if (blockBrowser.group) scene.remove(blockBrowser.group);
         setGeometry(currentGeoType);
         updateMaterial();
       }
@@ -948,7 +1164,7 @@
       document.getElementById("lblNrm").classList.toggle("loaded", !!nrm);
       document.getElementById("lblSpec").classList.toggle("loaded", !!spec);
 
-      refreshMaterials();
+      updateMaterial();
     }
 
     function loadPresetFailed(error) {
@@ -975,7 +1191,7 @@
         mapAlbedo = await loadTexture(URL.createObjectURL(file), true);
         document.getElementById("lblAlb").classList.add("loaded");
       }
-      refreshMaterials();
+      updateMaterial();
     }
 
     // --- Tooltip Logic ---
@@ -1023,14 +1239,28 @@
 
     // --- UI Listeners ---
     document.getElementById("presetSelect").addEventListener("change", (e) => {
-      loadPreset(e.target.value).catch(loadPresetFailed);
+      const key = e.target.value;
+      // In the block browser, picking a preset jumps to its block.
+      if (viewMode === "block" && blockBrowser.catalog && PRESETS[key]) {
+        const texName = PRESETS[key].albedo.split("/").pop().replace(/\.png$/, "");
+        const hit = blockBrowser.catalog.blocks.find(b =>
+          b.textures.includes(`minecraft:block/${texName}`));
+        if (hit) {
+          document.getElementById("hudPreset").textContent = PRESETS[key].name;
+          selectBlock(hit.id).catch(blockError);
+          return;
+        }
+      }
+      loadPreset(key).catch(loadPresetFailed);
     });
 
     document.querySelectorAll("#modeGroup .btn-toggle").forEach(btn => {
       btn.addEventListener("click", () => setViewMode(btn.dataset.mode));
     });
 
-    document.getElementById("chkBlockPBR").addEventListener("change", updateBlockMaterial);
+    document.getElementById("chkBlockPBR").addEventListener("change", () => rebuildBlock().catch(blockError));
+    document.getElementById("blockSearch").addEventListener("input", renderBlockList);
+    document.getElementById("blockStatusFilter").addEventListener("change", renderBlockList);
 
     document.querySelectorAll("#meshGroup .btn-toggle").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -1130,7 +1360,7 @@
     document.getElementById("fileNrm").addEventListener("change", (e) => e.target.files[0] && handleFile(e.target.files[0], "normal"));
     document.getElementById("fileSpec").addEventListener("change", (e) => e.target.files[0] && handleFile(e.target.files[0], "specular"));
 
-    // Drag and drop
+    // Drag and drop (uploads are a Material Lab thing; drop there switches modes)
     const dropZone = document.getElementById("dropZone");
     ["dragenter", "dragover"].forEach(evt => {
       window.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.add("dragover"); });
@@ -1140,6 +1370,7 @@
     });
     window.addEventListener("drop", (e) => {
       e.preventDefault();
+      if (viewMode === "block") setViewMode("lab");
       if (e.dataTransfer.files) {
         Array.from(e.dataTransfer.files).forEach(f => handleFile(f));
       }
@@ -1156,8 +1387,8 @@
     function animate() {
       requestAnimationFrame(animate);
 
-      if (document.getElementById("chkAutoRotate").checked && currentMesh) {
-        currentMesh.rotation.y += 0.005;
+      if (document.getElementById("chkAutoRotate").checked && (currentMesh || blockBrowser.group)) {
+        (currentMesh || blockBrowser.group).rotation.y += 0.005;
       }
 
       if (document.getElementById("chkOrbitSun").checked) {
@@ -1168,16 +1399,29 @@
         updateSun();
       }
 
+      // Animated block textures (fire, water, …) advance on the render loop.
+      if (viewMode === "block") {
+        const seconds = performance.now() / 1000;
+        for (const entry of blockBrowser.animations) {
+          const frame = animationFrame(null, entry.count, seconds);
+          entry.map.offset.set(
+            (frame % entry.columns) / entry.columns,
+            1 - (Math.floor(frame / entry.columns) + 1) / entry.rows);
+        }
+      }
+
       controls.update();
       renderer.render(scene, camera);
     }
 
     // Initialize
     setViewMode("lab");
-    const requestedPreset = new URLSearchParams(location.search).get("preset");
+    const params = new URLSearchParams(location.search);
+    const requestedPreset = params.get("preset");
     const initialPreset = Object.hasOwn(PRESETS, requestedPreset) ? requestedPreset : DEFAULT_PRESET;
     presetSelect.value = initialPreset;
     loadPreset(initialPreset).catch(loadPresetFailed);
+    if (params.get("block") && !requestedPreset) setViewMode("block");
     animate();
 
   </script>
