@@ -244,3 +244,27 @@ node compare_surface_detail.mjs vanilla_cobble_v2_calibrated vanilla_cobble_v2_d
 The script requires the viewer server on port 8765 and Google Chrome in `/Applications`.
 It captures the real viewer with identical source, camera, lighting, roughness, and depth on both sides.
 It produces `comparison.html`, `comparison.png`, individual captures, and `validation.json`.
+
+## 4. Minecraft Texture Viewer — Block Browser & Coverage (`labpbr-viewer.html`)
+
+The viewer's **Minecraft Texture Viewer** mode is the block browser: the pack's
+coverage at a glance, not the authoring pipeline.
+
+- **Coverage header:** percent complete plus complete / partial / missing / excluded counts across model-backed blocks.
+- **Block list:** every block from the published catalog, searchable and filterable by status.
+- **Block detail:** the block's textures with per-texture status, its blockstate variant controls (log axis, stair shape, …), and model notes.
+- **Model-accurate 3D:** each block renders with its real Minecraft model faces and face-to-texture bindings. Faces with published Metallum art render with LabPBR shading (normals, roughness, metalness); faces without published art show a placeholder so missing coverage is visible, never silently vanilla.
+
+Generation, candidate import, and keeper approval stay in the local Texture Studio (`texture_studio.py`) — the hosted viewer is read-only.
+
+### Publishing the block catalog
+
+The browser reads a static `studio-catalog/` bundle. Regenerate it on the machine that hosts the studio (it needs the client JAR and the local library), then commit and push:
+
+```bash
+cd minecraft_texturepack_2048
+python3 export_studio_catalog.py --out studio-catalog --shipped textures/
+git add studio-catalog && git commit -m "Publish block catalog" && git push
+```
+
+Keeper albedos (plus their baked `_n`/`_s` companions) are copied out of the local library; `--shipped` covers released PNGs that bypassed the keeper flow. Until `studio-catalog/catalog.json` exists, the block browser shows an empty state with these instructions.
