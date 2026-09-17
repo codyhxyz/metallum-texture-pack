@@ -396,7 +396,13 @@
         <button class="info-btn" data-title="Material Preset" data-body="Switches between pre-baked texture bundles." data-rec="Compare detailed cobblestone with the Before Detail preset under the same lighting.">i</button>
       </div>
       <select id="presetSelect">
-        <option value="vanilla_cobble_mat" selected>Vanilla-Guided Cobblestone · Detail</option>
+        <optgroup label="Metallum Ad Infinitum · Companion 2K">
+          <option value="metallum_stone" selected>Metallum · Stone</option>
+          <option value="metallum_oak_planks">Metallum · Oak planks</option>
+          <option value="metallum_iron_block">Metallum · Iron block</option>
+          <option value="metallum_glowstone">Metallum · Glowstone</option>
+        </optgroup>
+        <option value="vanilla_cobble_mat">Vanilla-Guided Cobblestone · Detail</option>
         <option value="vanilla_cobble_before">Cobblestone · Before Detail</option>
         <option value="granite_mat">Granite</option>
         <option value="granite_legacy_mat">Original Granite</option>
@@ -669,6 +675,10 @@
 
     const OLD_PREFIX = "macro_photography__top_down_flat_orthographic_view_of__coarse_granite_stone_wall_with_deep_fissures___seamless_texture__studio_lighting__neutral__seamless_texture__repeating_pattern__fl_4017007139";
     const PRESETS = {
+      metallum_stone: { name: "Metallum · Stone (Companion 2K)", albedo: "textures/stone.png", normal: "textures/stone_n.png", specular: "textures/stone_s.png", depth: 0.06 },
+      metallum_oak_planks: { name: "Metallum · Oak planks (Companion 2K)", albedo: "textures/oak_planks.png", normal: "textures/oak_planks_n.png", specular: "textures/oak_planks_s.png", depth: 0.025 },
+      metallum_iron_block: { name: "Metallum · Iron block (Companion 2K)", albedo: "textures/iron_block.png", normal: "textures/iron_block_n.png", specular: "textures/iron_block_s.png", depth: 0.03 },
+      metallum_glowstone: { name: "Metallum · Glowstone (Companion 2K)", albedo: "textures/glowstone.png", normal: "textures/glowstone_n.png", specular: "textures/glowstone_s.png", depth: 0.05 },
       candidate_oak_planks: { name: "Candidate · Oak planks (PBR)", albedo: "candidate-oak_planks.png", normal: "candidate-oak_planks_n.png", specular: "candidate-oak_planks_s.png", depth: 0.025 },
       candidate_bricks: { name: "Candidate · Bricks (PBR)", albedo: "candidate-bricks.png", normal: "candidate-bricks_n.png", specular: "candidate-bricks_s.png", depth: 0.025 },
       candidate_iron_ore: { name: "Candidate · Iron ore (PBR)", albedo: "candidate-iron_ore.png", normal: "candidate-iron_ore_n.png", specular: "candidate-iron_ore_s.png", depth: 0.05 },
@@ -1105,7 +1115,7 @@
     // Initialize
     setGeometry("box");
     const requestedPreset = new URLSearchParams(location.search).get("preset");
-    const initialPreset = Object.hasOwn(PRESETS, requestedPreset) ? requestedPreset : "vanilla_cobble_mat";
+    const initialPreset = Object.hasOwn(PRESETS, requestedPreset) ? requestedPreset : "metallum_stone";
     document.getElementById("presetSelect").value = initialPreset;
     loadPreset(initialPreset).catch(error => {
       document.getElementById("hudPreset").textContent = `Load failed: ${error.message || error}`;
